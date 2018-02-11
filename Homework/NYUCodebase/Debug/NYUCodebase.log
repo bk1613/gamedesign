@@ -1,0 +1,4 @@
+﻿  main.cpp
+c:\users\brian kao\cs3113\project_template\windows\nyucodebase\nyucodebase\main.cpp(64): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\brian kao\cs3113\project_template\windows\nyucodebase\nyucodebase\main.cpp(96): warning C4305: 'argument': truncation from 'double' to 'float'
+  NYUCodebase.vcxproj -> C:\Users\Brian Kao\CS3113\project_template\Windows\NYUCodebase\Debug\NYUCodebase.exe
