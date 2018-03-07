@@ -1,0 +1,24 @@
+﻿  main.cpp
+c:\users\bk161\gamedesign\homework3\nyucodebase\main.cpp(103): warning C4018: '<': signed/unsigned mismatch
+c:\users\bk161\gamedesign\homework3\nyucodebase\main.cpp(150): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\users\bk161\gamedesign\homework3\nyucodebase\main.cpp(196): warning C4018: '<': signed/unsigned mismatch
+c:\users\bk161\gamedesign\homework3\nyucodebase\main.cpp(212): warning C4018: '<': signed/unsigned mismatch
+c:\users\bk161\gamedesign\homework3\nyucodebase\main.cpp(216): warning C4018: '<': signed/unsigned mismatch
+c:\users\bk161\gamedesign\homework3\nyucodebase\main.cpp(217): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\bk161\gamedesign\homework3\nyucodebase\main.cpp(219): warning C4305: '=': truncation from 'double' to 'float'
+c:\users\bk161\gamedesign\homework3\nyucodebase\main.cpp(265): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\bk161\gamedesign\homework3\nyucodebase\main.cpp(281): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\bk161\gamedesign\homework3\nyucodebase\main.cpp(296): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\bk161\gamedesign\homework3\nyucodebase\main.cpp(336): warning C4305: '=': truncation from 'double' to 'float'
+c:\users\bk161\gamedesign\homework3\nyucodebase\main.cpp(354): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\bk161\gamedesign\homework3\nyucodebase\main.cpp(359): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\bk161\gamedesign\homework3\nyucodebase\main.cpp(373): warning C4018: '<': signed/unsigned mismatch
+c:\users\bk161\gamedesign\homework3\nyucodebase\main.cpp(379): warning C4838: conversion from 'double' to 'float' requires a narrowing conversion
+c:\users\bk161\gamedesign\homework3\nyucodebase\main.cpp(379): warning C4305: 'initializing': truncation from 'double' to 'float'
+c:\users\bk161\gamedesign\homework3\nyucodebase\main.cpp(389): warning C4018: '<': signed/unsigned mismatch
+c:\users\bk161\gamedesign\homework3\nyucodebase\main.cpp(437): warning C4305: 'argument': truncation from 'double' to 'float'
+  Generating Code...
+  Skipping... (no relevant changes detected)
+  ShaderProgram.cpp
+  Matrix.cpp
+  NYUCodebase.vcxproj -> C:\Users\bk161\gamedesign\Homework3\Debug\NYUCodebase.exe
