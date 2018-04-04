@@ -58,8 +58,8 @@ GLuint LoadTexture(const char *filePath) {
 class SheetSprite {
 public:
 	SheetSprite() {}
-	SheetSprite(unsigned int te, float givenU, float givenV, float givenWidth, float givenHeight, float givenSize) : size(givenSize), textureID(te),u(givenU), v(givenV),
-	width(givenWidth), height(givenHeight) {}
+	SheetSprite(unsigned int te, float givenU, float givenV, float givenWidth, float givenHeight, float givenSize) : size(givenSize), textureID(te), u(givenU), v(givenV),
+		width(givenWidth), height(givenHeight) {}
 
 	void Draw(ShaderProgram *program);
 
@@ -90,21 +90,21 @@ void SheetSprite::Draw(ShaderProgram *program) {
 		-0.5f * size * aspect, -0.5f * size,
 		0.5f * size * aspect, -0.5f * size,
 	};
-	
+
 
 }
 
 void DrawSpriteSheetSprite(ShaderProgram &program, int index, int spriteCountX, int spriteCountY) {
-	float u = (float)(((int)index) % spriteCountX) / (float)spriteCountX;     
-	float v = (float)(((int)index) / spriteCountX) / (float)spriteCountY;     
-	float spriteWidth = 1.0 / (float)spriteCountX;     
-	float spriteHeight = 1.0 / (float)spriteCountY;         
-	float texCoords[] = { u, v + spriteHeight,         
-		u + spriteWidth, v,        
-		u, v,         
-		u + spriteWidth, v,        
-		u, v + spriteHeight,       
-		u + spriteWidth, v + spriteHeight };      
+	float u = (float)(((int)index) % spriteCountX) / (float)spriteCountX;
+	float v = (float)(((int)index) / spriteCountX) / (float)spriteCountY;
+	float spriteWidth = 1.0 / (float)spriteCountX;
+	float spriteHeight = 1.0 / (float)spriteCountY;
+	float texCoords[] = { u, v + spriteHeight,
+		u + spriteWidth, v,
+		u, v,
+		u + spriteWidth, v,
+		u, v + spriteHeight,
+		u + spriteWidth, v + spriteHeight };
 	float vertices[] = { -0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f, 0.5f, 0.5f,  -0.5f, -0.5f, 0.5f, -0.5f };
 
 	glVertexAttribPointer(program.positionAttribute, 2, GL_FLOAT, false, 0, vertices);
@@ -117,7 +117,7 @@ void DrawSpriteSheetSprite(ShaderProgram &program, int index, int spriteCountX, 
 
 	glDisableVertexAttribArray(program.positionAttribute);
 	glDisableVertexAttribArray(program.texCoordAttribute);
- 
+
 }
 
 
@@ -167,7 +167,7 @@ void DrawText(ShaderProgram *program, int fontTexture, string text, float size, 
 	glDisableVertexAttribArray(program->texCoordAttribute);
 }
 
-enum EntityType {ENTITY_PLAYER, ENTITY_COIN};
+enum EntityType { ENTITY_PLAYER, ENTITY_COIN };
 
 class Entity {
 public:
@@ -179,12 +179,12 @@ public:
 	float friction_y = 0.5f;
 	float position_x;
 	float position_y;
-	float velocity_x = 2.25f;
-	float velocity_y = 2.25f;
+	float velocity_x = 0.0f;
+	float velocity_y = 0.0f;
 	float acceleration_x;
 	float acceleration_y;
-	float gravity_x;
-	float gravity_y;
+	float gravity_x = 0.0f;
+	float gravity_y = -2.0f;
 	bool isStatic;
 	EntityType entityType;
 	SheetSprite sprite;
@@ -193,8 +193,8 @@ float lerp(float v0, float v1, float t) { return (1.0 - t)*v0 + t * v1; }
 
 class Gamestate {
 public:
-	int numEnemies = 0; 
-	int score = 0; 
+	int numEnemies = 0;
+	int score = 0;
 	bool gamestop = false;
 };
 
@@ -207,11 +207,11 @@ void PlaceEntity(std::string type, float x, float y) {
 		playerpos.position_x = x;
 		playerpos.position_y = y;
 	}
-	else if(type == "coins"){
+	else if (type == "coins") {
 		coins.position_x = x;
 		coins.position_y = y;
 	}
-	
+
 }
 
 void worldToTileCoordinates(float worldX, float worldY, int *gridX, int *gridY) {
@@ -226,34 +226,35 @@ bool BoxBoxCollision(float x1, float y1, float w1, float h1, float x2, float y2,
 	else {
 		return true;
 	}
-	
+
 }
 
 bool issolid(int tileindex) {
-	return(tileindex == 19|| tileindex == 1 || tileindex == 2 || tileindex == 17);
+	return tileindex != 0;
 }
 
 Gamestate state;
 FlareMap map;
 
 void Update(float elapsed) {
-	
+
 	const Uint8 *keys = SDL_GetKeyboardState(NULL);
 	playerpos.acceleration_x = 0.0f;
 	playerpos.acceleration_x = 0.0f;
 
 	if (keys[SDL_SCANCODE_RIGHT]) {
-		playerpos.acceleration_x = 0.25f;
+		playerpos.acceleration_x = 1.25f;
 	}
 	else if (keys[SDL_SCANCODE_LEFT]) {
-		playerpos.acceleration_x = -0.25f;
+		playerpos.acceleration_x = -1.25f;
 	}
 	else if (keys[SDL_SCANCODE_UP]) {
-		playerpos.acceleration_y = 0.25f;;
+		//	playerpos.acceleration_y = 1.25f;
+		playerpos.velocity_y = 2.0f;
 
 	}
 	else if (keys[SDL_SCANCODE_DOWN]) {
-		playerpos.acceleration_y = -0.25f;
+		//playerpos.acceleration_y = -1.25f;
 
 	}
 
@@ -269,35 +270,34 @@ void Update(float elapsed) {
 	int tileX = 0;
 	int tileY = 0;
 
-	//playerpos.position_x += playerpos.velocity_x * elapsed;
-	
+	playerpos.position_x += playerpos.velocity_x * elapsed;
+
 	//worldToTileCoordinates(playerpos.position_x + 16 / 2, playerpos.position_y, tileX, tileY);
 	//worldToTileCoordinates(playerpos.position_x - 16 / 2, playerpos.position_y, tileX, tileY);
 	if (issolid(map.mapData[tileY][tileX])) {
 		//float pentration = fabs((-TILE_SIZE * tileX) - (playerpos.position_x - map.mapWidth / 2));
 		//float pentration = fabs((-TILE_SIZE * tileX) - (playerpos.position_x - map.mapWidth / 2));
 		//float adjust = penetration * playerpos.dir_x
-		
+
 	}
-	
+
 	int tileX1 = 0;
 	int tileY2 = 0;
 
-	//playerpos.position_y += playerpos.velocity_y * elapsed;
+	playerpos.position_y += playerpos.velocity_y * elapsed;
 	worldToTileCoordinates(playerpos.position_x, playerpos.position_y - 0.5f, &tileX1, &tileY2);
 	//worldToTileCoordinates(playerpos.position_x, playerpos.position_y + 16 / 2, tileX2, tileY2);
 
 	if (tileX1 > 0 && tileX1 < map.mapWidth && tileY2 > 0 && tileY2 < map.mapHeight) {
 		if (issolid(map.mapData[tileY2][tileX1])) {
-			float penetration = fabs((-TILE_SIZE * tileY2) - (playerpos.position_y - map.mapHeight / 2));
-			//float pentration = fabs(((-TILE_SIZE * tileY2) - TILE_SIZE) - (playerpos.position_y + map.mapHeight / 2));
-			playerpos.position_y += penetration + 0.0001f;
+			float penetration = fabs((-TILE_SIZE * tileY2) - (playerpos.position_y - 0.5f));
+			playerpos.position_y += penetration + 0.001f;
 			playerpos.velocity_y = 0.0f;
 
 		}
 	}
 
-	
+
 }
 
 
@@ -314,18 +314,18 @@ int main(int argc, char *argv[])
 	SDL_Event event;
 	bool done = false;
 	glViewport(0, 0, 640, 360);
-	
 
-	
+
+
 	map.Load("maptile.txt");
 	for (int i = 0; i < map.entities.size(); i++) {
 		PlaceEntity(map.entities[i].type, map.entities[i].x * TILE_SIZE, map.entities[i].y * -TILE_SIZE);
 	}
-	vector<float> vertexData;    
+	vector<float> vertexData;
 	vector<float> texCoordData;
 	int SPRITE_COUNT_X = 16;
 	int SPRITE_COUNT_Y = 8;
-		
+
 
 	//textured
 	ShaderProgram programtextured;
@@ -341,7 +341,7 @@ int main(int argc, char *argv[])
 	Matrix mapmodelMatrix;
 	Matrix modelMatrixtext;
 	Matrix viewMatrix;
-	
+
 	projectionMatrix.SetOrthoProjection(-3.55, 3.55, -2.0f, 2.0f, -1.0f, 1.0f);
 
 	enum GameMode { TITLE_SCREEN, GAME };
@@ -357,11 +357,11 @@ int main(int argc, char *argv[])
 	bool begingame = false;
 	float accumulator = 0.0f;
 
-	const int runAnimation[] = { 1, 5, 9, 13};
-	const int runAnimation2[] = {3, 7, 11, 15};
-	const int numFrames = 5; 
-	float animationElapsed = 0.0f; 
-	float framesPerSecond = 30.0f; 
+	const int runAnimation[] = { 1, 5, 9, 13 };
+	const int runAnimation2[] = { 3, 7, 11, 15 };
+	const int numFrames = 5;
+	float animationElapsed = 0.0f;
+	float framesPerSecond = 30.0f;
 	int currentIndex = 0;
 	int TOTAL_TITLES = LEVEL_HEIGHT * LEVEL_WIDTH;
 
@@ -384,9 +384,9 @@ int main(int argc, char *argv[])
 				if (event.key.keysym.scancode == SDL_SCANCODE_RETURN) {
 					if (mode == TITLE_SCREEN) {
 						mode = GAME;
-						
+
 					}
-				} 
+				}
 			}
 		}
 
@@ -395,109 +395,112 @@ int main(int argc, char *argv[])
 
 		switch (mode)
 		{
-			case TITLE_SCREEN:
-				modelMatrixtext.Identity();
-				modelMatrixtext.Translate(-3.0f, 1.0f, 0.0f);
-				programtextured.SetModelMatrix(modelMatrixtext);
-				DrawText(&programtextured, text, "Welcome to Adventure World", ((3.5 / 25.0f) * 2.0f), -0.03f);
+		case TITLE_SCREEN:
+			modelMatrixtext.Identity();
+			modelMatrixtext.Translate(-3.0f, 1.0f, 0.0f);
+			programtextured.SetModelMatrix(modelMatrixtext);
+			DrawText(&programtextured, text, "Welcome to Adventure World", ((3.5 / 25.0f) * 2.0f), -0.03f);
 
-				modelMatrixtext.Identity();
-				modelMatrixtext.Translate(-1.16f, -1.0f, 0.0f);
-				programtextured.SetModelMatrix(modelMatrixtext);
-				DrawText(&programtextured, text, "Press Enter", ((3.0 / 25.0f) * 2.0f), -0.05f);
+			modelMatrixtext.Identity();
+			modelMatrixtext.Translate(-1.16f, -1.0f, 0.0f);
+			programtextured.SetModelMatrix(modelMatrixtext);
+			DrawText(&programtextured, text, "Press Enter", ((3.0 / 25.0f) * 2.0f), -0.05f);
 			break;
 
-			case GAME:
-				float ticks = (float)SDL_GetTicks() / 1000.0f;
-				float elapsed = ticks - lastFrameTicks;
-				lastFrameTicks = ticks;
-				elapsed += accumulator;
-				if (elapsed < FIXED_TIMESTEP) {
-					accumulator = elapsed;        
-					continue; 
+		case GAME:
+			float ticks = (float)SDL_GetTicks() / 1000.0f;
+			float elapsed = ticks - lastFrameTicks;
+			lastFrameTicks = ticks;
+			elapsed += accumulator;
+			if (elapsed < FIXED_TIMESTEP) {
+				accumulator = elapsed;
+				continue;
+			}
+
+			while (elapsed >= FIXED_TIMESTEP) {
+				Update(FIXED_TIMESTEP);
+				elapsed -= FIXED_TIMESTEP;
+			}
+			accumulator = elapsed;
+
+			animationElapsed += elapsed;
+			if (animationElapsed > 1.0 / framesPerSecond) {
+				currentIndex++;
+				animationElapsed = 0.0;
+				if (currentIndex > numFrames - 1) {
+					currentIndex = 0;
 				}
+			}
 
-				while (elapsed >= FIXED_TIMESTEP) {
-					Update(FIXED_TIMESTEP);
-					elapsed -= FIXED_TIMESTEP;
-				}     
-				accumulator = elapsed; 
-				
-				animationElapsed += elapsed; 
-				if (animationElapsed > 1.0 / framesPerSecond) { 
-					currentIndex++;     
-					animationElapsed = 0.0;     
-					if (currentIndex > numFrames - 1) { 
-						currentIndex = 0; 
-					} 
-				} 
+			//player
 
-				//player
-				modelMatrix.Identity();
-				modelMatrix.Translate(playerpos.position_x, playerpos.position_y, 0.0f);
-				programtextured.SetModelMatrix(modelMatrix);
-				programtextured.SetProjectionMatrix(projectionMatrix);
+			viewMatrix.Identity();
+			viewMatrix.Translate(-playerpos.position_x, -playerpos.position_y, 0.0f);
+			programtextured.SetViewMatrix(viewMatrix);
 
 
-				viewMatrix.Identity();
-				viewMatrix.Translate(-playerpos.position_x, -playerpos.position_y, 0.0f);
-				programtextured.SetViewMatrix(viewMatrix);
 
-				glBindTexture(GL_TEXTURE_2D, player);
-				//DrawSpriteSheetSprite(programtextured, 3, 4, 4);
-				
-				
-				//Rendermap
-				modelMatrix.Identity();
-				programtextured.SetModelMatrix(mapmodelMatrix);
-				
-				vertexData.clear();
-				texCoordData.clear();
+			//Rendermap
+			modelMatrix.Identity();
+			programtextured.SetModelMatrix(mapmodelMatrix);
 
-				for (int y = 0; y < map.mapHeight; y++) {
-					for (int x = 0; x < map.mapWidth; x++) {
+			vertexData.clear();
+			texCoordData.clear();
 
-						if (map.mapData[y][x] != 0) {
-							float u = (float)(((int)map.mapData[y][x]) % SPRITE_COUNT_X) / (float)SPRITE_COUNT_X;
-							float v = (float)(((int)map.mapData[y][x]) / SPRITE_COUNT_X) / (float)SPRITE_COUNT_Y;
+			for (int y = 0; y < map.mapHeight; y++) {
+				for (int x = 0; x < map.mapWidth; x++) {
 
-							float spriteWidth = 1.0f / (float)SPRITE_COUNT_X;
-							float spriteHeight = 1.0f / (float)SPRITE_COUNT_Y;
+					if (map.mapData[y][x] != 0) {
+						float u = (float)(((int)map.mapData[y][x]) % SPRITE_COUNT_X) / (float)SPRITE_COUNT_X;
+						float v = (float)(((int)map.mapData[y][x]) / SPRITE_COUNT_X) / (float)SPRITE_COUNT_Y;
 
-							vertexData.insert(vertexData.end(), { TILE_SIZE * x, -TILE_SIZE * y,
-								TILE_SIZE * x, (-TILE_SIZE * y) - TILE_SIZE,
-								(TILE_SIZE * x) + TILE_SIZE, (-TILE_SIZE * y) - TILE_SIZE,
-								TILE_SIZE * x, -TILE_SIZE * y,
-								(TILE_SIZE * x) + TILE_SIZE, (-TILE_SIZE * y) - TILE_SIZE,
-								(TILE_SIZE * x) + TILE_SIZE, -TILE_SIZE * y });
+						float spriteWidth = 1.0f / (float)SPRITE_COUNT_X;
+						float spriteHeight = 1.0f / (float)SPRITE_COUNT_Y;
 
-							texCoordData.insert(texCoordData.end(), { u, v,
-								u, v + (spriteHeight),
-								u + spriteWidth, v + (spriteHeight),
-								u, v,
-								u + spriteWidth, v + (spriteHeight),
-								u + spriteWidth, v
-								});
-						}
+						vertexData.insert(vertexData.end(), { TILE_SIZE * x, -TILE_SIZE * y,
+							TILE_SIZE * x, (-TILE_SIZE * y) - TILE_SIZE,
+							(TILE_SIZE * x) + TILE_SIZE, (-TILE_SIZE * y) - TILE_SIZE,
+							TILE_SIZE * x, -TILE_SIZE * y,
+							(TILE_SIZE * x) + TILE_SIZE, (-TILE_SIZE * y) - TILE_SIZE,
+							(TILE_SIZE * x) + TILE_SIZE, -TILE_SIZE * y });
+
+						texCoordData.insert(texCoordData.end(), { u, v,
+							u, v + (spriteHeight),
+							u + spriteWidth, v + (spriteHeight),
+							u, v,
+							u + spriteWidth, v + (spriteHeight),
+							u + spriteWidth, v
+							});
 					}
 				}
-				glBindTexture(GL_TEXTURE_2D, backgroun1);
-				glUseProgram(programtextured.programID);
+			}
+			glBindTexture(GL_TEXTURE_2D, backgroun1);
+			glUseProgram(programtextured.programID);
 
-				glVertexAttribPointer(programtextured.positionAttribute, 2, GL_FLOAT, false, 0, vertexData.data());
-				glEnableVertexAttribArray(programtextured.positionAttribute);
+			glVertexAttribPointer(programtextured.positionAttribute, 2, GL_FLOAT, false, 0, vertexData.data());
+			glEnableVertexAttribArray(programtextured.positionAttribute);
 
-				glVertexAttribPointer(programtextured.texCoordAttribute, 2, GL_FLOAT, false, 0, texCoordData.data());
-				glEnableVertexAttribArray(programtextured.texCoordAttribute);
+			glVertexAttribPointer(programtextured.texCoordAttribute, 2, GL_FLOAT, false, 0, texCoordData.data());
+			glEnableVertexAttribArray(programtextured.texCoordAttribute);
 
-				glDrawArrays(GL_TRIANGLES, 0, vertexData.size() / 2);
+			glDrawArrays(GL_TRIANGLES, 0, vertexData.size() / 2);
 
-				glDisableVertexAttribArray(programtextured.positionAttribute);
-				glDisableVertexAttribArray(programtextured.texCoordAttribute);
+			glDisableVertexAttribArray(programtextured.positionAttribute);
+			glDisableVertexAttribArray(programtextured.texCoordAttribute);
+
+			modelMatrix.Identity();
+			modelMatrix.Translate(playerpos.position_x, playerpos.position_y, 0.0f);
+			programtextured.SetModelMatrix(modelMatrix);
+			programtextured.SetProjectionMatrix(projectionMatrix);
+
+
+			glBindTexture(GL_TEXTURE_2D, player);
+			DrawSpriteSheetSprite(programtextured, 3, 4, 4);
+
 
 			break;
 		}
-			
+
 		//End Drawing
 		SDL_GL_SwapWindow(displayWindow);
 	}
@@ -505,4 +508,3 @@ int main(int argc, char *argv[])
 	SDL_Quit();
 	return 0;
 }
-
