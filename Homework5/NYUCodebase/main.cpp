@@ -582,9 +582,9 @@ int main(int argc, char *argv[])
 
 			//player
 
-			viewMatrix.Identity();
-			viewMatrix.Translate(-playerpos.position_x, -playerpos.position_y, 0.0f);
-			programtextured.SetViewMatrix(viewMatrix);
+			//viewMatrix.Identity();
+			//viewMatrix.Translate(-playerpos.position_x, -playerpos.position_y, 0.0f);
+			//programtextured.SetViewMatrix(viewMatrix);
 
 			//Rendermap
 			/*modelMatrix.Identity();
