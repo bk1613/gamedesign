@@ -228,40 +228,7 @@ Entity playerpos;
 Entity metoer;
 vector<Entity> coin;
 
-void PlaceEntity(std::string type, float x, float y) {
-	// place your entity at x, y based on type string
-	if (type == "player") {
 
-		playerpos.position_x = x;
-		playerpos.position_y = y;
-	}
-	else if (type == "coin") {
-
-		coins.coinpos_x = x;
-		coins.coinpos_y = y;
-		coin.push_back(coins);
-	}
-
-}
-
-void worldToTileCoordinates(float worldX, float worldY, int *gridX, int *gridY) {
-	*gridX = (int)(worldX / TILE_SIZE);
-	*gridY = (int)(-worldY / TILE_SIZE);
-}
-
-bool BoxBoxCollision(float x1, float y1, float w1, float h1, float x2, float y2, float w2, float h2) {
-	if (y1 + h1 / 2.0f < y2 - h2 / 2.0f || y1 - h1 / 2.0f > y2 + h2 / 2.0f || x1 - w1 / 2.0f > x2 + w2 / 2.0f || x1 + w1 / 2.0f < x2 - w2 / 2.0f) {
-		return false;
-	}
-	else {
-		return true;
-	}
-
-}
-
-bool issolid(int tileindex) {
-	return tileindex != 0;
-}
 
 Gamestate state;
 FlareMap map;
@@ -269,12 +236,6 @@ FlareMap map;
 void Update(float elapsed) {
 
 
-	for (int i = 0; i < coin.size(); i++) {
-		if (BoxBoxCollision(playerpos.position_x, playerpos.position_y, 0.5, 0.5, coin[i].coinpos_x, coin[i].coinpos_y, 0.5, 0.5)) {
-			coin[i].coinpos_x = 1000.0f;
-			coin[i].coinpos_y = 1000.0f;
-		}
-	}
 	metoer.astpos_x = metoer.astvel_x * metoer.dir_x * elapsed;
 	metoer.astpos_y = metoer.astvel_y * metoer.dir_y * elapsed;
 
@@ -306,81 +267,6 @@ void Update(float elapsed) {
 	playerpos.velocity_x += playerpos.acceleration_x * elapsed;
 	playerpos.velocity_y += playerpos.acceleration_y * elapsed;
 
-	bool Topcollided;
-	bool Bottomcollided;
-	bool Leftcollided;
-	bool Rightcollided;
-
-
-
-	int tileX1 = 0;
-	int tileY2 = 0;
-	float penetration = 0;
-	playerpos.position_y += playerpos.velocity_y * elapsed;
-
-	worldToTileCoordinates(playerpos.position_x, playerpos.position_y + 0.5f, &tileX1, &tileY2);
-	penetration = fabs((-TILE_SIZE * tileY2) - (playerpos.position_y + 0.5f));
-
-	if (tileX1 > 0 && tileX1 < map.mapWidth && tileY2 > 0 && tileY2 < map.mapHeight) {
-
-		if (issolid(map.mapData[tileY2][tileX1])) {
-			Bottomcollided = true;
-			playerpos.position_y -= penetration + 0.001f;
-			playerpos.velocity_y = 0.0f;
-
-		}
-		else {
-			Bottomcollided = false;
-		}
-
-		worldToTileCoordinates(playerpos.position_x, playerpos.position_y - 0.5f, &tileX1, &tileY2);
-		penetration = fabs((-TILE_SIZE * tileY2) - (playerpos.position_y - 0.5f));
-		if (issolid(map.mapData[tileY2][tileX1])) {
-			Topcollided = true;
-			playerpos.position_y += penetration + 0.001f;
-			playerpos.velocity_y = 0.0f;
-
-		}
-		else {
-			Topcollided = false;
-		}
-
-
-	}
-	int tileX = 0;
-	int tileY = 0;
-
-	playerpos.position_x += playerpos.velocity_x * elapsed;
-	worldToTileCoordinates(playerpos.position_x + 0.5f, playerpos.position_y, &tileX, &tileY);
-	penetration = fabs((-TILE_SIZE * tileX) - (playerpos.position_x + 0.5f));
-
-	if (tileY > 0 && tileY < map.mapHeight && tileX > 0 && tileX < map.mapWidth) {
-		if (issolid(map.mapData[tileY][tileX])) {
-			Rightcollided = true;
-			playerpos.velocity_x = 0.0f;
-			playerpos.position_x -= penetration * 0.001f;
-
-		}
-		else {
-			Rightcollided = false;
-		}
-
-
-
-		worldToTileCoordinates(playerpos.position_x - 0.5f, playerpos.position_y, &tileX, &tileY);
-		penetration = fabs((-TILE_SIZE * tileX + TILE_SIZE) - (playerpos.position_x - 0.5f));
-		if (issolid(map.mapData[tileY][tileX])) {
-			Leftcollided = true;
-			playerpos.velocity_x = 0.0f;
-			playerpos.position_x += penetration * 0.001f;
-
-		}
-		else {
-			Leftcollided = false;
-		}
-
-	}
-
 
 }
 
@@ -400,11 +286,6 @@ int main(int argc, char *argv[])
 	glViewport(0, 0, 640, 360);
 
 
-
-	map.Load("maptile.txt");
-	for (int i = 0; i < map.entities.size(); i++) {
-		PlaceEntity(map.entities[i].type, map.entities[i].x * TILE_SIZE, map.entities[i].y * -TILE_SIZE);
-	}
 	vector<float> vertexData;
 	vector<float> texCoordData;
 	int SPRITE_COUNT_X = 16;
@@ -582,8 +463,8 @@ int main(int argc, char *argv[])
 
 			std::pair<float, float> penetration;
 
-			std::vector<std::pair<float, float>> e1Points;
-			std::vector<std::pair<float, float>> e2Points;
+			vector<std::pair<float, float>> e1Points;
+			vector<std::pair<float, float>> e2Points;
 
 			for (int i = 0; i < entitymeteor.points.size(); i++) {
 				Vector point =  entitymeteor.modelMatrixasteriod * entitymeteor.points[i];
@@ -609,57 +490,7 @@ int main(int argc, char *argv[])
 			programtextured.SetModelMatrix(entitymeteor2.modelMatrixasteriod);
 			programtextured.SetProjectionMatrix(projectionMatrix);
 			entitymeteor2.sprite.Draw(&programtextured);
-			
 
-			//Rendermap
-			/*modelMatrix.Identity();
-			programtextured.SetModelMatrix(mapmodelMatrix);
-
-			vertexData.clear();
-			texCoordData.clear();
-
-			for (int y = 0; y < map.mapHeight; y++) {
-				for (int x = 0; x < map.mapWidth; x++) {
-
-					if (map.mapData[y][x] != 0) {
-						float u = (float)(((int)map.mapData[y][x]) % SPRITE_COUNT_X) / (float)SPRITE_COUNT_X;
-						float v = (float)(((int)map.mapData[y][x]) / SPRITE_COUNT_X) / (float)SPRITE_COUNT_Y;
-
-						float spriteWidth = 1.0f / (float)SPRITE_COUNT_X;
-						float spriteHeight = 1.0f / (float)SPRITE_COUNT_Y;
-
-						vertexData.insert(vertexData.end(), { TILE_SIZE * x, -TILE_SIZE * y,
-							TILE_SIZE * x, (-TILE_SIZE * y) - TILE_SIZE,
-							(TILE_SIZE * x) + TILE_SIZE, (-TILE_SIZE * y) - TILE_SIZE,
-							TILE_SIZE * x, -TILE_SIZE * y,
-							(TILE_SIZE * x) + TILE_SIZE, (-TILE_SIZE * y) - TILE_SIZE,
-							(TILE_SIZE * x) + TILE_SIZE, -TILE_SIZE * y });
-
-						texCoordData.insert(texCoordData.end(), { u, v,
-							u, v + (spriteHeight),
-							u + spriteWidth, v + (spriteHeight),
-							u, v,
-							u + spriteWidth, v + (spriteHeight),
-							u + spriteWidth, v
-							});
-					}
-				}
-			}
-
-
-			glBindTexture(GL_TEXTURE_2D, backgroun1);
-			glUseProgram(programtextured.programID);
-
-			glVertexAttribPointer(programtextured.positionAttribute, 2, GL_FLOAT, false, 0, vertexData.data());
-			glEnableVertexAttribArray(programtextured.positionAttribute);
-
-			glVertexAttribPointer(programtextured.texCoordAttribute, 2, GL_FLOAT, false, 0, texCoordData.data());
-			glEnableVertexAttribArray(programtextured.texCoordAttribute);
-
-			glDrawArrays(GL_TRIANGLES, 0, vertexData.size() / 2);
-
-			glDisableVertexAttribArray(programtextured.positionAttribute);
-			glDisableVertexAttribArray(programtextured.texCoordAttribute);*/
 			//player
 
 			viewMatrix.Identity();
