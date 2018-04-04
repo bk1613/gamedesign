@@ -105,7 +105,7 @@ void DrawSpriteSheetSprite(ShaderProgram &program, int index, int spriteCountX, 
 		u + spriteWidth, v,
 		u, v + spriteHeight,
 		u + spriteWidth, v + spriteHeight };
-	float vertices[] = { -0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f, 0.5f, 0.5f,  -0.5f, -0.5f, 0.5f, -0.5f };
+	float vertices[] = { -0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f, 0.5f, 0.5f, -0.5f, -0.5f, 0.5f, -0.5f };
 
 	glVertexAttribPointer(program.positionAttribute, 2, GL_FLOAT, false, 0, vertices);
 	glEnableVertexAttribArray(program.positionAttribute);
@@ -146,9 +146,9 @@ void DrawText(ShaderProgram *program, int fontTexture, string text, float size, 
 		texCoordData.insert(texCoordData.end(), {
 			texture_x, texture_y,
 			texture_x, texture_y + texture_size,
-			texture_x + texture_size, texture_y ,
+			texture_x + texture_size, texture_y,
 			texture_x + texture_size, texture_y + texture_size,
-			texture_x + texture_size, texture_y ,
+			texture_x + texture_size, texture_y,
 			texture_x, texture_y + texture_size,
 			});
 	}
@@ -172,7 +172,8 @@ enum EntityType { ENTITY_PLAYER, ENTITY_COIN };
 class Entity {
 public:
 	Entity() {}
-	float pistolvelocity_y;
+	float coinpos_x;
+	float coinpos_y;
 	float dir_x = sin(0.785398);
 	float dir_y = 1.0f;
 	float friction_x = 0.5f;
@@ -185,7 +186,9 @@ public:
 	float acceleration_y;
 	float gravity_x = 0.0f;
 	float gravity_y = -2.0f;
+
 	bool isStatic;
+
 	EntityType entityType;
 	SheetSprite sprite;
 };
@@ -193,23 +196,26 @@ float lerp(float v0, float v1, float t) { return (1.0 - t)*v0 + t * v1; }
 
 class Gamestate {
 public:
-	int numEnemies = 0;
-	int score = 0;
+
 	bool gamestop = false;
 };
 
-Entity playerpos;
 Entity coins;
+Entity playerpos;
+vector<Entity> coin;
 
 void PlaceEntity(std::string type, float x, float y) {
 	// place your entity at x, y based on type string
 	if (type == "player") {
+
 		playerpos.position_x = x;
 		playerpos.position_y = y;
 	}
-	else if (type == "coins") {
-		coins.position_x = x;
-		coins.position_y = y;
+	else if (type == "coin") {
+
+		coins.coinpos_x = x;
+		coins.coinpos_y = y;
+		coin.push_back(coins);
 	}
 
 }
@@ -238,23 +244,27 @@ FlareMap map;
 
 void Update(float elapsed) {
 
+
+	for (int i = 0; i < coin.size(); i++) {
+		if (BoxBoxCollision(playerpos.position_x, playerpos.position_y, 0.5, 0.5, coin[i].coinpos_x, coin[i].coinpos_y, 0.5, 0.5)) {
+			coin[i].coinpos_x = 1000.0f;
+			coin[i].coinpos_y = 1000.0f;
+		}
+	}
+
+
 	const Uint8 *keys = SDL_GetKeyboardState(NULL);
 	playerpos.acceleration_x = 0.0f;
 	playerpos.acceleration_x = 0.0f;
 
 	if (keys[SDL_SCANCODE_RIGHT]) {
-		playerpos.acceleration_x = 1.25f;
+		playerpos.acceleration_x = 1.5f;
 	}
 	else if (keys[SDL_SCANCODE_LEFT]) {
-		playerpos.acceleration_x = -1.25f;
+		playerpos.acceleration_x = -1.5f;
 	}
 	else if (keys[SDL_SCANCODE_UP]) {
-		//	playerpos.acceleration_y = 1.25f;
 		playerpos.velocity_y = 2.0f;
-
-	}
-	else if (keys[SDL_SCANCODE_DOWN]) {
-		//playerpos.acceleration_y = -1.25f;
 
 	}
 
@@ -267,34 +277,79 @@ void Update(float elapsed) {
 	playerpos.velocity_x += playerpos.acceleration_x * elapsed;
 	playerpos.velocity_y += playerpos.acceleration_y * elapsed;
 
-	int tileX = 0;
-	int tileY = 0;
+	bool Topcollided;
+	bool Bottomcollided;
+	bool Leftcollided;
+	bool Rightcollided;
 
-	playerpos.position_x += playerpos.velocity_x * elapsed;
 
-	//worldToTileCoordinates(playerpos.position_x + 16 / 2, playerpos.position_y, tileX, tileY);
-	//worldToTileCoordinates(playerpos.position_x - 16 / 2, playerpos.position_y, tileX, tileY);
-	if (issolid(map.mapData[tileY][tileX])) {
-		//float pentration = fabs((-TILE_SIZE * tileX) - (playerpos.position_x - map.mapWidth / 2));
-		//float pentration = fabs((-TILE_SIZE * tileX) - (playerpos.position_x - map.mapWidth / 2));
-		//float adjust = penetration * playerpos.dir_x
-
-	}
 
 	int tileX1 = 0;
 	int tileY2 = 0;
-
+	float penetration = 0;
 	playerpos.position_y += playerpos.velocity_y * elapsed;
-	worldToTileCoordinates(playerpos.position_x, playerpos.position_y - 0.5f, &tileX1, &tileY2);
-	//worldToTileCoordinates(playerpos.position_x, playerpos.position_y + 16 / 2, tileX2, tileY2);
+
+	worldToTileCoordinates(playerpos.position_x, playerpos.position_y + 0.5f, &tileX1, &tileY2);
+	penetration = fabs((-TILE_SIZE * tileY2) - (playerpos.position_y + 0.5f));
 
 	if (tileX1 > 0 && tileX1 < map.mapWidth && tileY2 > 0 && tileY2 < map.mapHeight) {
+
 		if (issolid(map.mapData[tileY2][tileX1])) {
-			float penetration = fabs((-TILE_SIZE * tileY2) - (playerpos.position_y - 0.5f));
+			Bottomcollided = true;
+			playerpos.position_y -= penetration + 0.001f;
+			playerpos.velocity_y = 0.0f;
+
+		}
+		else {
+			Bottomcollided = false;
+		}
+
+		worldToTileCoordinates(playerpos.position_x, playerpos.position_y - 0.5f, &tileX1, &tileY2);
+		penetration = fabs((-TILE_SIZE * tileY2) - (playerpos.position_y - 0.5f));
+		if (issolid(map.mapData[tileY2][tileX1])) {
+			Topcollided = true;
 			playerpos.position_y += penetration + 0.001f;
 			playerpos.velocity_y = 0.0f;
 
 		}
+		else {
+			Topcollided = false;
+		}
+
+
+	}
+	int tileX = 0;
+	int tileY = 0;
+
+	playerpos.position_x += playerpos.velocity_x * elapsed;
+	worldToTileCoordinates(playerpos.position_x + 0.5f, playerpos.position_y, &tileX, &tileY);
+	penetration = fabs((-TILE_SIZE * tileX) - (playerpos.position_x + 0.5f));
+
+	if (tileY > 0 && tileY < map.mapHeight && tileX > 0 && tileX < map.mapWidth) {
+		if (issolid(map.mapData[tileY][tileX])) {
+			Rightcollided = true;
+			playerpos.velocity_x = 0.0f;
+			playerpos.position_x -= penetration * 0.001f;
+
+		}
+		else {
+			Rightcollided = false;
+		}
+
+
+
+		worldToTileCoordinates(playerpos.position_x - 0.5f, playerpos.position_y, &tileX, &tileY);
+		penetration = fabs((-TILE_SIZE * tileX + TILE_SIZE) - (playerpos.position_x - 0.5f));
+		if (issolid(map.mapData[tileY][tileX])) {
+			Leftcollided = true;
+			playerpos.velocity_x = 0.0f;
+			playerpos.position_x += penetration * 0.001f;
+
+		}
+		else {
+			Leftcollided = false;
+		}
+
 	}
 
 
@@ -423,14 +478,14 @@ int main(int argc, char *argv[])
 			}
 			accumulator = elapsed;
 
-			animationElapsed += elapsed;
+			/*animationElapsed += elapsed;
 			if (animationElapsed > 1.0 / framesPerSecond) {
-				currentIndex++;
-				animationElapsed = 0.0;
-				if (currentIndex > numFrames - 1) {
-					currentIndex = 0;
-				}
+			currentIndex++;
+			animationElapsed = 0.0;
+			if (currentIndex > numFrames - 1) {
+			currentIndex = 0;
 			}
+			}*/
 
 			//player
 
@@ -497,7 +552,17 @@ int main(int argc, char *argv[])
 			glBindTexture(GL_TEXTURE_2D, player);
 			DrawSpriteSheetSprite(programtextured, 3, 4, 4);
 
+			//coins
+			for (int b = 0; b < coin.size(); b++) {
+				modelMatrix.Identity();
+				modelMatrix.Translate(coin[b].coinpos_x, coin[b].coinpos_y, 0.0f);
+				programtextured.SetModelMatrix(modelMatrix);
+				programtextured.SetProjectionMatrix(projectionMatrix);
 
+				glBindTexture(GL_TEXTURE_2D, backgroun1);
+				DrawSpriteSheetSprite(programtextured, 51, 16, 8);
+
+			}
 			break;
 		}
 
