@@ -196,6 +196,10 @@ public:
 	float position_y;
 	float velocity_x = 0.0f;
 	float velocity_y = 0.0f;
+	float astpos_x;
+	float astpos_y;
+	float astvel_x = 0.0f;
+	float astvel_y = 0.0f;
 	float acceleration_x;
 	float acceleration_y;
 	float gravity_x = 0.0f;
@@ -221,6 +225,7 @@ public:
 
 Entity coins;
 Entity playerpos;
+Entity metoer;
 vector<Entity> coin;
 
 void PlaceEntity(std::string type, float x, float y) {
@@ -270,7 +275,8 @@ void Update(float elapsed) {
 			coin[i].coinpos_y = 1000.0f;
 		}
 	}
-
+	metoer.astpos_x = metoer.astvel_x * metoer.dir_x * elapsed;
+	metoer.astpos_y = metoer.astvel_y * metoer.dir_y * elapsed;
 
 	const Uint8 *keys = SDL_GetKeyboardState(NULL);
 	playerpos.acceleration_x = 0.0f;
@@ -426,6 +432,18 @@ int main(int argc, char *argv[])
 	Matrix projectionMatrix;
 	Matrix viewMatrix;
 
+	/*entity.modelMatrix.Translate(0.0f, 0.0f, 0.0f);
+	entity.modelMatrix.Scale(0.15f, 0.15f, 0.0f);
+	programtextured.SetModelMatrix(entity.modelMatrix);
+
+	entitymeteor.modelMatrixasteriod.Translate(0.0f, 0.0f, 0.0f);
+	entitymeteor.modelMatrixasteriod.Scale(0.15f, 0.15f, 0.0f);
+	programtextured.SetModelMatrix(entitymeteor.modelMatrixasteriod);
+
+	entitymeteor2.modelMatrixasteriod.Translate(0.0f, 0.0f, 0.0f);
+	entitymeteor2.modelMatrixasteriod.Scale(0.15f, 0.15f, 0.0f);
+	programtextured.SetModelMatrix(entitymeteor2.modelMatrixasteriod);*/
+
 	projectionMatrix.SetOrthoProjection(-3.55, 3.55, -2.0f, 2.0f, -1.0f, 1.0f);
 
 	enum GameMode { TITLE_SCREEN, GAME };
@@ -578,13 +596,20 @@ int main(int argc, char *argv[])
 			}
 
 			bool collided = CheckSATCollision(e1Points, e2Points, penetration);
+			//metoers
 
+			entitymeteor.modelMatrixasteriod.Identity();
+			entitymeteor.modelMatrixasteriod.Translate(metoer.astpos_x, metoer.astpos_y, 0.0f);
+			programtextured.SetModelMatrix(entitymeteor.modelMatrixasteriod);
+			programtextured.SetProjectionMatrix(projectionMatrix);
+			entitymeteor.sprite.Draw(&programtextured);
 
-			//player
-
-			//viewMatrix.Identity();
-			//viewMatrix.Translate(-playerpos.position_x, -playerpos.position_y, 0.0f);
-			//programtextured.SetViewMatrix(viewMatrix);
+			entitymeteor2.modelMatrixasteriod.Identity();
+			entitymeteor2.modelMatrixasteriod.Translate(metoer.astpos_x, metoer.astpos_y, 0.0f);
+			programtextured.SetModelMatrix(entitymeteor2.modelMatrixasteriod);
+			programtextured.SetProjectionMatrix(projectionMatrix);
+			entitymeteor2.sprite.Draw(&programtextured);
+			
 
 			//Rendermap
 			/*modelMatrix.Identity();
@@ -635,7 +660,11 @@ int main(int argc, char *argv[])
 
 			glDisableVertexAttribArray(programtextured.positionAttribute);
 			glDisableVertexAttribArray(programtextured.texCoordAttribute);*/
+			//player
 
+			viewMatrix.Identity();
+			viewMatrix.Translate(-playerpos.position_x, -playerpos.position_y, 0.0f);
+			programtextured.SetViewMatrix(viewMatrix);
 			enntityMatrix.modelMatrix.Identity();
 			enntityMatrix.modelMatrix.Translate(playerpos.position_x, playerpos.position_y, 0.0f);
 			
