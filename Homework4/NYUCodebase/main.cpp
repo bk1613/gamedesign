@@ -167,6 +167,17 @@ void DrawText(ShaderProgram *program, int fontTexture, string text, float size, 
 	glDisableVertexAttribArray(program->texCoordAttribute);
 }
 
+float mapValue(float value, float srcMin, float srcMax, float dstMin, float dstMax) { 
+	float retVal = dstMin + ((value - srcMin) / (srcMax - srcMin) * (dstMax - dstMin));     
+	if (retVal < dstMin) { 
+		retVal = dstMin;
+	}     
+	if (retVal > dstMax) { 
+		retVal = dstMax; 
+	}    
+	return retVal; 
+}
+
 enum EntityType { ENTITY_PLAYER, ENTITY_COIN };
 
 class Entity {
@@ -201,6 +212,7 @@ public:
 };
 
 Entity coins;
+Entity enemy;
 Entity playerpos;
 vector<Entity> coin;
 
@@ -217,7 +229,9 @@ void PlaceEntity(std::string type, float x, float y) {
 		coins.coinpos_y = y;
 		coin.push_back(coins);
 	}
-
+	else if (type == "enemy") {
+		
+	}
 }
 
 void worldToTileCoordinates(float worldX, float worldY, int *gridX, int *gridY) {
@@ -243,7 +257,10 @@ Gamestate state;
 FlareMap map;
 
 void Update(float elapsed) {
-
+	/*animationTime = animationTime + elapsed;     
+	float animationValue = mapValue(animationTime, animationStart, animationEnd, 0.0, 1.0);    
+	modelMatrix.identity();     
+	modelMatrix.Translate(lerp(0.0, 1.0, animationValue), 0.0, 0.0);*/
 
 	for (int i = 0; i < coin.size(); i++) {
 		if (BoxBoxCollision(playerpos.position_x, playerpos.position_y, 0.5, 0.5, coin[i].coinpos_x, coin[i].coinpos_y, 0.5, 0.5)) {
@@ -267,12 +284,11 @@ void Update(float elapsed) {
 		playerpos.velocity_y = 2.0f;
 
 	}
-
+	else if (keys[SDL_SCANCODE_DOWN]) {
+		playerpos.velocity_y = -2.0f;
+	}
 	playerpos.velocity_x = lerp(playerpos.velocity_x, 0.0f, elapsed * playerpos.friction_x);
 	playerpos.velocity_y = lerp(playerpos.velocity_y, 0.0f, elapsed * playerpos.friction_y);
-
-	playerpos.velocity_x += playerpos.gravity_x * elapsed;
-	playerpos.velocity_y += playerpos.gravity_y * elapsed;
 
 	playerpos.velocity_x += playerpos.acceleration_x * elapsed;
 	playerpos.velocity_y += playerpos.acceleration_y * elapsed;
@@ -355,8 +371,6 @@ void Update(float elapsed) {
 
 }
 
-
-
 int main(int argc, char *argv[])
 {
 	SDL_Init(SDL_INIT_VIDEO);// | SDL_INIT_JOYSTICK);
@@ -387,6 +401,7 @@ int main(int argc, char *argv[])
 	programtextured.Load(RESOURCE_FOLDER"vertex_textured.glsl", RESOURCE_FOLDER"fragment_textured.glsl");
 	GLuint player = LoadTexture("george_0.png");
 	GLuint backgroun1 = LoadTexture("arne_sprites.png");
+	GLuint backgroun2 = LoadTexture("dirt-tiles");
 	GLuint text = LoadTexture("font1.png");
 	Entity entity;
 

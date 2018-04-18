@@ -188,8 +188,8 @@ public:
 	float coinpos_y;
 	float dir_x = sin(0.785398);
 	float dir_y = 1.0f;
-	float friction_x = 0.5f;
-	float friction_y = 0.5f;
+	float friction_x = 0.25f;
+	float friction_y = 0.25f;
 	float pistolpos_x;
 	float pistolpos_y;
 	float position_x;
@@ -227,33 +227,40 @@ Entity coins;
 Entity playerpos;
 Entity metoer;
 vector<Entity> coin;
-
+Entity entity;
+Entity entityparts1;
+Entity entityparts2;
+Entity entitymeteor;
+Entity entitymeteor2;
+Entity enntityMatrix;
 
 
 Gamestate state;
 FlareMap map;
+float lerp(float v0, float v1, float t) { return (1.0 - t)*v0 + t * v1; }
 
 void Update(float elapsed) {
-	
+
 	const Uint8 *keys = SDL_GetKeyboardState(NULL);
 	playerpos.acceleration_x = 0.0f;
 	playerpos.acceleration_x = 0.0f;
 
 	if (keys[SDL_SCANCODE_RIGHT]) {
-		playerpos.acceleration_x = 1.5f;
+		playerpos.acceleration_x = .5f;
 	}
 	else if (keys[SDL_SCANCODE_LEFT]) {
-		playerpos.acceleration_x = -1.5f;
+		playerpos.acceleration_x = -.5f;
 	}
 	else if (keys[SDL_SCANCODE_UP]) {
 		//playerpos.velocity_y = 2.0f;
-		playerpos.acceleration_x = 1.5f;
+		playerpos.acceleration_y = 0.5f;
 	}
 	else if (keys[SDL_SCANCODE_DOWN]) {
 		//playerpos.velocity_y = -2.0f;
-		playerpos.acceleration_x = -1.5f;
+		playerpos.acceleration_y = -0.5f;
 	}
-
+	playerpos.velocity_x = lerp(playerpos.velocity_x, 0.0f, elapsed * playerpos.friction_x);
+	playerpos.velocity_y = lerp(playerpos.velocity_y, 0.0f, elapsed * playerpos.friction_y);
 
 	playerpos.velocity_x += playerpos.acceleration_x * elapsed;
 	playerpos.velocity_y += playerpos.acceleration_y * elapsed;
@@ -261,13 +268,113 @@ void Update(float elapsed) {
 	playerpos.position_x += playerpos.velocity_x * elapsed;
 	playerpos.position_y += playerpos.velocity_y * elapsed;
 
-	metoer.astvel_x += metoer.acceleration_x * elapsed;
-	metoer.astvel_y += metoer.acceleration_y * elapsed;
+	entitymeteor.astvel_x += entitymeteor.acceleration_x * elapsed;
+	entitymeteor.astvel_y += entitymeteor.acceleration_y * elapsed;
 
-	metoer.astpos_x += metoer.astvel_x * elapsed;
-	metoer.astpos_y += metoer.astvel_y * elapsed;
+	entitymeteor.astpos_x += entitymeteor.astvel_x * elapsed;
+	entitymeteor.astpos_y += entitymeteor.astvel_y * elapsed;
+
+	entitymeteor2.astvel_x += entitymeteor.acceleration_x * elapsed;
+	entitymeteor2.astvel_y += entitymeteor.acceleration_y * elapsed;
+
+	entitymeteor2.astpos_x += entitymeteor.astvel_x * elapsed;
+	entitymeteor2.astpos_y += entitymeteor.astvel_y * elapsed;
 
 	metoer.rotation += elapsed;
+
+	pair<float, float> penetration;
+
+	vector<pair<float, float>> e1Points;
+	vector<pair<float, float>> e2Points;
+	vector<pair<float, float>> e3Points;
+
+	//ship and asteriod 1
+	enntityMatrix.modelMatrix.Identity();
+	enntityMatrix.modelMatrix.Translate(playerpos.position_x, playerpos.position_y, 0.0f);
+	for (int i = 0; i < enntityMatrix.points.size(); i++) {
+		Vector point = enntityMatrix.modelMatrix * enntityMatrix.points[i];
+		e1Points.push_back(std::make_pair(point.x, point.y));
+	}
+
+	entitymeteor.modelMatrixasteriod.Identity();
+	entitymeteor.modelMatrixasteriod.Translate(entitymeteor.astpos_x + 1, entitymeteor.astpos_y, 0.0f);
+	entitymeteor.modelMatrixasteriod.Scale(metoer.scale_x, metoer.scale_y, 1.0f);
+	entitymeteor.modelMatrixasteriod.Rotate(metoer.rotation);
+	for (int i = 0; i < entitymeteor.points.size(); i++) {
+		Vector point = entitymeteor.modelMatrixasteriod * entitymeteor.points[i];
+		e2Points.push_back(std::make_pair(point.x, point.y));
+	}
+	bool collided = CheckSATCollision(e1Points, e2Points, penetration);
+	if (collided) {
+		playerpos.position_x += penetration.first * 0.5f;
+
+		playerpos.position_y += penetration.second * 0.5f;
+
+		entitymeteor.astpos_x -= penetration.first * 0.5f;
+
+		entitymeteor.astpos_y -= penetration.second * 0.5f;
+	}
+
+
+	//ship and asteroid2
+	enntityMatrix.modelMatrix.Identity();
+	enntityMatrix.modelMatrix.Translate(playerpos.position_x, playerpos.position_y, 0.0f);
+	for (int i = 0; i < enntityMatrix.points.size(); i++) {
+		Vector point = enntityMatrix.modelMatrix * enntityMatrix.points[i];
+		e1Points.push_back(std::make_pair(point.x, point.y));
+	}
+
+	entitymeteor2.modelMatrixasteriod.Identity();
+	entitymeteor2.modelMatrixasteriod.Translate(entitymeteor2.astpos_x, entitymeteor2.astpos_y + 1.5, 0.0f);
+	entitymeteor2.modelMatrixasteriod.Scale(metoer.scale_x, metoer.scale_y, 1.0f);
+	entitymeteor2.modelMatrixasteriod.Rotate(metoer.rotation);
+	for (int i = 0; i < entitymeteor2.points.size(); i++) {
+		Vector point = entitymeteor2.modelMatrixasteriod * entitymeteor2.points[i];
+		e3Points.push_back(std::make_pair(point.x, point.y));
+	}
+	bool collided1 = CheckSATCollision(e1Points, e3Points, penetration);
+
+	if (collided1) {
+		playerpos.position_x += penetration.first * 0.5f;
+
+		playerpos.position_y += penetration.second * 0.5f;
+
+		entitymeteor2.astpos_x -= penetration.first * 0.5f;
+
+		entitymeteor2.astpos_y -= penetration.second * 0.5f;
+	}
+
+	//asteroid1 and asteroid2
+	entitymeteor.modelMatrixasteriod.Identity();
+	entitymeteor.modelMatrixasteriod.Translate(entitymeteor.astpos_x + 1, entitymeteor.astpos_y, 0.0f);
+	entitymeteor.modelMatrixasteriod.Scale(metoer.scale_x, metoer.scale_y, 1.0f);
+	entitymeteor.modelMatrixasteriod.Rotate(metoer.rotation);
+	for (int i = 0; i < entitymeteor.points.size(); i++) {
+		Vector point = entitymeteor.modelMatrixasteriod * entitymeteor.points[i];
+		e2Points.push_back(std::make_pair(point.x, point.y));
+	}
+
+	entitymeteor2.modelMatrixasteriod.Identity();
+	entitymeteor2.modelMatrixasteriod.Translate(entitymeteor2.astpos_x, entitymeteor2.astpos_y + 1.5, 0.0f);
+	entitymeteor2.modelMatrixasteriod.Scale(metoer.scale_x, metoer.scale_y, 1.0f);
+	entitymeteor2.modelMatrixasteriod.Rotate(metoer.rotation);
+	for (int i = 0; i < entitymeteor2.points.size(); i++) {
+		Vector point = entitymeteor2.modelMatrixasteriod * entitymeteor2.points[i];
+		e3Points.push_back(std::make_pair(point.x, point.y));
+	}
+	bool collided2 = CheckSATCollision(e2Points, e3Points, penetration);
+
+
+	if (collided2) {
+		entitymeteor.astpos_x += penetration.first * 0.5f;
+
+		entitymeteor.astpos_y += penetration.second * 0.5f;
+
+		entitymeteor2.astpos_x -= penetration.first * 0.5f;
+
+		entitymeteor2.astpos_y -= penetration.second * 0.5f;
+	}
+
 
 }
 
@@ -299,12 +406,7 @@ int main(int argc, char *argv[])
 	GLuint spritespaceshooter = LoadTexture("sheet.png");
 	GLuint asteriod = LoadTexture("meteorBrown_big3.png");
 	GLuint text = LoadTexture("font1.png");
-	Entity entity;
-	Entity entityparts1;
-	Entity entityparts2;
-	Entity entitymeteor;
-	Entity entitymeteor2;
-	Entity enntityMatrix;
+
 
 	entity.sprite = SheetSprite(spritespaceshooter, 224.0f / 1024.0f, 832.0f / 1024.0f, 99.0f / 1024.0f, 75.0f / 1024.0f, 0.25);
 	entityparts1.sprite = SheetSprite(spritespaceshooter, 809.0f / 1024.0f, 796.0f / 1024.0f, 20.0f / 1024.0f, 41.0f / 1024.0f, 0.25);
@@ -313,18 +415,6 @@ int main(int argc, char *argv[])
 	entitymeteor2.sprite = SheetSprite(spritespaceshooter, 651.0f / 1024.0f, 447.0f / 1024.0f, 43.0f / 1024.0f, 43.0f / 1024.0f, 0.25);
 	Matrix projectionMatrix;
 	Matrix viewMatrix;
-
-	/*entity.modelMatrix.Translate(0.0f, 0.0f, 0.0f);
-	entity.modelMatrix.Scale(0.15f, 0.15f, 0.0f);
-	programtextured.SetModelMatrix(entity.modelMatrix);
-
-	entitymeteor.modelMatrixasteriod.Translate(0.0f, 0.0f, 0.0f);
-	entitymeteor.modelMatrixasteriod.Scale(0.15f, 0.15f, 0.0f);
-	programtextured.SetModelMatrix(entitymeteor.modelMatrixasteriod);
-
-	entitymeteor2.modelMatrixasteriod.Translate(0.0f, 0.0f, 0.0f);
-	entitymeteor2.modelMatrixasteriod.Scale(0.15f, 0.15f, 0.0f);
-	programtextured.SetModelMatrix(entitymeteor2.modelMatrixasteriod);*/
 
 	projectionMatrix.SetOrthoProjection(-3.55, 3.55, -2.0f, 2.0f, -1.0f, 1.0f);
 
@@ -335,9 +425,30 @@ int main(int argc, char *argv[])
 	Vector v2;
 	Vector v3;
 	Vector v4;
+	//ship
+	v.x = -0.5f *.25 * ((99.0f / 1024.0f) / (75.0f / 1024.0f, 0.25));
+	v.y = -0.5f * .25;
+	v.z = 0;
+	enntityMatrix.points.push_back(v);
+
+	v2.x = 0.5f *.25 * ((99.0f / 1024.0f) / (75.0f / 1024.0f, 0.25));
+	v2.y = -0.5f * .25;
+	v2.z = 0;
+	enntityMatrix.points.push_back(v2);
+
+	v3.x = 0.5f *.25 * ((99.0f / 1024.0f) / (75.0f / 1024.0f, 0.25));
+	v3.y = 0.5f * .25;
+	v4.z = 0;
+	enntityMatrix.points.push_back(v3);
+
+	v4.x = -0.5f *.25 * ((99.0f / 1024.0f) / (75.0f / 1024.0f, 0.25));
+	v4.y = 0.5f * .25;
+	v4.z = 0;
+	enntityMatrix.points.push_back(v4);
+
 
 	//meteor1
-	v.x = -0.5f *.25 * ((101.0f / 1024.0f)/(84.0f / 1024.0f));
+	v.x = -0.5f *.25 * ((101.0f / 1024.0f) / (84.0f / 1024.0f));
 	v.y = -0.5f * .25;
 	v.z = 0;
 	entitymeteor.points.push_back(v);
@@ -346,7 +457,7 @@ int main(int argc, char *argv[])
 	v2.y = -0.5f * .25;
 	v2.z = 0;
 	entitymeteor.points.push_back(v2);
-	
+
 	v3.x = 0.5f *.25 * ((101.0f / 1024.0f) / (84.0f / 1024.0f));
 	v3.y = 0.5f * .25;
 	v4.z = 0;
@@ -372,7 +483,7 @@ int main(int argc, char *argv[])
 	v3.y = 0.5f * .25;
 	v4.z = 0;
 	entitymeteor2.points.push_back(v3);
-	
+
 	v4.x = -0.5f *.25 * ((43.0f / 1024.0f) / (43.0f / 1024.0f));
 	v4.y = 0.5f * .25;
 	v4.z = 0;
@@ -462,46 +573,16 @@ int main(int argc, char *argv[])
 			}
 			}*/
 
-			std::pair<float, float> penetration;
 
-			vector<std::pair<float, float>> e1Points;
-			vector<std::pair<float, float>> e2Points;
 
-			entitymeteor.modelMatrixasteriod.Identity();
-			entitymeteor.modelMatrixasteriod.Translate(metoer.astpos_x, metoer.astpos_y, 0.0f);
-			entitymeteor.modelMatrixasteriod.Translate(metoer.scale_x, metoer.scale_y, 1.0f);
-			entitymeteor.modelMatrixasteriod.Rotate(metoer.rotation);
-			for (int i = 0; i < entitymeteor.points.size(); i++) {
-				Vector point =  entitymeteor.modelMatrixasteriod * entitymeteor.points[i];
-				e1Points.push_back(std::make_pair(point.x, point.y));
-			}
 
-			entitymeteor2.modelMatrixasteriod.Identity();
-			entitymeteor2.modelMatrixasteriod.Translate(metoer.astpos_x, metoer.astpos_y, 0.0f);
-			entitymeteor2.modelMatrixasteriod.Translate(metoer.scale_x, metoer.scale_y, 1.0f);
-			entitymeteor2.modelMatrixasteriod.Rotate(metoer.rotation);
-			for (int i = 0; i < entitymeteor2.points.size(); i++) {
-				Vector point = entitymeteor2.modelMatrixasteriod * entitymeteor2.points[i];
-				e2Points.push_back(std::make_pair(point.x, point.y));
-			}
 
-			bool collided = CheckSATCollision(e1Points, e2Points, penetration);
 			//metoers
-			if (collided) {
-				entitymeteor.astpos_x += penetration.first * 0.5f;
 
-				entitymeteor.astpos_y += penetration.second * 0.5f;     
-
-				entitymeteor2.astpos_x -= penetration.first * 0.5f;
-
-				entitymeteor2.astpos_y -= penetration.second * 0.5f;
-			}
-			
 			programtextured.SetModelMatrix(entitymeteor.modelMatrixasteriod);
 			programtextured.SetProjectionMatrix(projectionMatrix);
 			entitymeteor.sprite.Draw(&programtextured);
 
-			
 			programtextured.SetModelMatrix(entitymeteor2.modelMatrixasteriod);
 			programtextured.SetProjectionMatrix(projectionMatrix);
 			entitymeteor2.sprite.Draw(&programtextured);
@@ -510,22 +591,22 @@ int main(int argc, char *argv[])
 
 			enntityMatrix.modelMatrix.Identity();
 			enntityMatrix.modelMatrix.Translate(playerpos.position_x, playerpos.position_y, 0.0f);
-			
 
-			enntityMatrix.modelMatrixguns.Identity();
-			enntityMatrix.modelMatrixguns.Translate(playerpos.position_x+.1, playerpos.position_y+.1, 0.0f);
-			
 
-			enntityMatrix.modelMatrixguns2.Identity();
-			enntityMatrix.modelMatrixguns2.Translate(playerpos.position_x-.1, playerpos.position_y+.1, 0.0f);
-	
+			//enntityMatrix.modelMatrixguns.Identity();
+			//enntityMatrix.modelMatrixguns.Translate(playerpos.position_x+.25, playerpos.position_y+.15, 0.0f);
 
-			programtextured.SetModelMatrix( enntityMatrix.modelMatrixguns*enntityMatrix.modelMatrix);
-			programtextured.SetModelMatrix( enntityMatrix.modelMatrixguns2*enntityMatrix.modelMatrix);
+
+			//enntityMatrix.modelMatrixguns2.Identity();
+			//enntityMatrix.modelMatrixguns2.Translate(playerpos.position_x-.25, playerpos.position_y+.15, 0.0f);
+
+			programtextured.SetModelMatrix(enntityMatrix.modelMatrix);
+			//programtextured.SetModelMatrix( enntityMatrix.modelMatrixguns*enntityMatrix.modelMatrix);
+			//programtextured.SetModelMatrix( enntityMatrix.modelMatrixguns2*enntityMatrix.modelMatrix);
 			programtextured.SetProjectionMatrix(projectionMatrix);
 			entity.sprite.Draw(&programtextured);
-			entityparts1.sprite.Draw(&programtextured);
-			entityparts2.sprite.Draw(&programtextured);
+			//entityparts1.sprite.Draw(&programtextured);
+			//entityparts2.sprite.Draw(&programtextured);
 			//glBindTexture(GL_TEXTURE_2D, player);
 			//DrawSpriteSheetSprite(programtextured, 3, 4, 4);
 
