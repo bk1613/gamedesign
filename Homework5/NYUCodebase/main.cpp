@@ -240,7 +240,7 @@ FlareMap map;
 float lerp(float v0, float v1, float t) { return (1.0 - t)*v0 + t * v1; }
 
 void Update(float elapsed) {
-
+	
 	const Uint8 *keys = SDL_GetKeyboardState(NULL);
 	playerpos.acceleration_x = 0.0f;
 	playerpos.acceleration_x = 0.0f;
@@ -292,27 +292,27 @@ void Update(float elapsed) {
 	enntityMatrix.modelMatrix.Identity();
 	enntityMatrix.modelMatrix.Translate(playerpos.position_x, playerpos.position_y, 0.0f);
 	for (int i = 0; i < enntityMatrix.points.size(); i++) {
-		Vector point = enntityMatrix.modelMatrix * enntityMatrix.points[i];
-		e1Points.push_back(std::make_pair(point.x, point.y));
+	Vector point = enntityMatrix.modelMatrix * enntityMatrix.points[i];
+	e1Points.push_back(std::make_pair(point.x, point.y));
 	}
 
 	entitymeteor.modelMatrixasteriod.Identity();
-	entitymeteor.modelMatrixasteriod.Translate(entitymeteor.astpos_x + 1, entitymeteor.astpos_y, 0.0f);
+	entitymeteor.modelMatrixasteriod.Translate(entitymeteor.astpos_x+1, entitymeteor.astpos_y, 0.0f);
 	entitymeteor.modelMatrixasteriod.Scale(metoer.scale_x, metoer.scale_y, 1.0f);
 	entitymeteor.modelMatrixasteriod.Rotate(metoer.rotation);
 	for (int i = 0; i < entitymeteor.points.size(); i++) {
-		Vector point = entitymeteor.modelMatrixasteriod * entitymeteor.points[i];
-		e2Points.push_back(std::make_pair(point.x, point.y));
+	Vector point = entitymeteor.modelMatrixasteriod * entitymeteor.points[i];
+	e2Points.push_back(std::make_pair(point.x, point.y));
 	}
 	bool collided = CheckSATCollision(e1Points, e2Points, penetration);
 	if (collided) {
-		playerpos.position_x += penetration.first * 0.5f;
+	playerpos.position_x += penetration.first * 0.5f;
 
-		playerpos.position_y += penetration.second * 0.5f;
+	playerpos.position_y += penetration.second * 0.5f;
 
-		entitymeteor.astpos_x -= penetration.first * 0.5f;
+	entitymeteor.astpos_x -= penetration.first * 0.5f;
 
-		entitymeteor.astpos_y -= penetration.second * 0.5f;
+	entitymeteor.astpos_y -= penetration.second * 0.5f;
 	}
 
 
@@ -320,12 +320,12 @@ void Update(float elapsed) {
 	enntityMatrix.modelMatrix.Identity();
 	enntityMatrix.modelMatrix.Translate(playerpos.position_x, playerpos.position_y, 0.0f);
 	for (int i = 0; i < enntityMatrix.points.size(); i++) {
-		Vector point = enntityMatrix.modelMatrix * enntityMatrix.points[i];
-		e1Points.push_back(std::make_pair(point.x, point.y));
+	Vector point = enntityMatrix.modelMatrix * enntityMatrix.points[i];
+	e1Points.push_back(std::make_pair(point.x, point.y));
 	}
 
 	entitymeteor2.modelMatrixasteriod.Identity();
-	entitymeteor2.modelMatrixasteriod.Translate(entitymeteor2.astpos_x, entitymeteor2.astpos_y + 1.5, 0.0f);
+	entitymeteor2.modelMatrixasteriod.Translate(entitymeteor2.astpos_x, entitymeteor2.astpos_y+1.5, 0.0f);
 	entitymeteor2.modelMatrixasteriod.Scale(metoer.scale_x, metoer.scale_y, 1.0f);
 	entitymeteor2.modelMatrixasteriod.Rotate(metoer.rotation);
 	for (int i = 0; i < entitymeteor2.points.size(); i++) {
@@ -355,7 +355,7 @@ void Update(float elapsed) {
 	}
 
 	entitymeteor2.modelMatrixasteriod.Identity();
-	entitymeteor2.modelMatrixasteriod.Translate(entitymeteor2.astpos_x, entitymeteor2.astpos_y + 1.5, 0.0f);
+	entitymeteor2.modelMatrixasteriod.Translate(entitymeteor2.astpos_x, entitymeteor2.astpos_y+1.5, 0.0f);
 	entitymeteor2.modelMatrixasteriod.Scale(metoer.scale_x, metoer.scale_y, 1.0f);
 	entitymeteor2.modelMatrixasteriod.Rotate(metoer.rotation);
 	for (int i = 0; i < entitymeteor2.points.size(); i++) {
@@ -406,7 +406,7 @@ int main(int argc, char *argv[])
 	GLuint spritespaceshooter = LoadTexture("sheet.png");
 	GLuint asteriod = LoadTexture("meteorBrown_big3.png");
 	GLuint text = LoadTexture("font1.png");
-
+	
 
 	entity.sprite = SheetSprite(spritespaceshooter, 224.0f / 1024.0f, 832.0f / 1024.0f, 99.0f / 1024.0f, 75.0f / 1024.0f, 0.25);
 	entityparts1.sprite = SheetSprite(spritespaceshooter, 809.0f / 1024.0f, 796.0f / 1024.0f, 20.0f / 1024.0f, 41.0f / 1024.0f, 0.25);
@@ -431,7 +431,7 @@ int main(int argc, char *argv[])
 	v.z = 0;
 	enntityMatrix.points.push_back(v);
 
-	v2.x = 0.5f *.25 * ((99.0f / 1024.0f) / (75.0f / 1024.0f, 0.25));
+	v2.x = 0.5f *.25 * ((99.0f / 1024.0f)/(75.0f / 1024.0f, 0.25));
 	v2.y = -0.5f * .25;
 	v2.z = 0;
 	enntityMatrix.points.push_back(v2);
@@ -448,7 +448,7 @@ int main(int argc, char *argv[])
 
 
 	//meteor1
-	v.x = -0.5f *.25 * ((101.0f / 1024.0f) / (84.0f / 1024.0f));
+	v.x = -0.5f *.25 * ((101.0f / 1024.0f)/(84.0f / 1024.0f));
 	v.y = -0.5f * .25;
 	v.z = 0;
 	entitymeteor.points.push_back(v);
@@ -457,7 +457,7 @@ int main(int argc, char *argv[])
 	v2.y = -0.5f * .25;
 	v2.z = 0;
 	entitymeteor.points.push_back(v2);
-
+	
 	v3.x = 0.5f *.25 * ((101.0f / 1024.0f) / (84.0f / 1024.0f));
 	v3.y = 0.5f * .25;
 	v4.z = 0;
@@ -483,7 +483,7 @@ int main(int argc, char *argv[])
 	v3.y = 0.5f * .25;
 	v4.z = 0;
 	entitymeteor2.points.push_back(v3);
-
+	
 	v4.x = -0.5f *.25 * ((43.0f / 1024.0f) / (43.0f / 1024.0f));
 	v4.y = 0.5f * .25;
 	v4.z = 0;
@@ -573,12 +573,12 @@ int main(int argc, char *argv[])
 			}
 			}*/
 
+			
 
 
-
-
+			
 			//metoers
-
+			
 			programtextured.SetModelMatrix(entitymeteor.modelMatrixasteriod);
 			programtextured.SetProjectionMatrix(projectionMatrix);
 			entitymeteor.sprite.Draw(&programtextured);
@@ -591,15 +591,15 @@ int main(int argc, char *argv[])
 
 			enntityMatrix.modelMatrix.Identity();
 			enntityMatrix.modelMatrix.Translate(playerpos.position_x, playerpos.position_y, 0.0f);
-
+			
 
 			//enntityMatrix.modelMatrixguns.Identity();
 			//enntityMatrix.modelMatrixguns.Translate(playerpos.position_x+.25, playerpos.position_y+.15, 0.0f);
-
+			
 
 			//enntityMatrix.modelMatrixguns2.Identity();
 			//enntityMatrix.modelMatrixguns2.Translate(playerpos.position_x-.25, playerpos.position_y+.15, 0.0f);
-
+	
 			programtextured.SetModelMatrix(enntityMatrix.modelMatrix);
 			//programtextured.SetModelMatrix( enntityMatrix.modelMatrixguns*enntityMatrix.modelMatrix);
 			//programtextured.SetModelMatrix( enntityMatrix.modelMatrixguns2*enntityMatrix.modelMatrix);

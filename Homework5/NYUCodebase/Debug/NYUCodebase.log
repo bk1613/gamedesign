@@ -1,13 +1,22 @@
 ﻿  main.cpp
-c:\users\bk161\gamedesign\homework5\nyucodebase\main.cpp(112): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-c:\users\bk161\gamedesign\homework5\nyucodebase\main.cpp(113): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-c:\users\bk161\gamedesign\homework5\nyucodebase\main.cpp(142): warning C4018: '<': signed/unsigned mismatch
-c:\users\bk161\gamedesign\homework5\nyucodebase\main.cpp(189): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-c:\users\bk161\gamedesign\homework5\nyucodebase\main.cpp(329): warning C4305: 'argument': truncation from 'double' to 'float'
-c:\users\bk161\gamedesign\homework5\nyucodebase\main.cpp(432): warning C4305: 'argument': truncation from 'double' to 'float'
-c:\users\bk161\gamedesign\homework5\nyucodebase\main.cpp(437): warning C4305: 'argument': truncation from 'double' to 'float'
-c:\users\bk161\gamedesign\homework5\nyucodebase\main.cpp(474): warning C4018: '<': signed/unsigned mismatch
-c:\users\bk161\gamedesign\homework5\nyucodebase\main.cpp(483): warning C4018: '<': signed/unsigned mismatch
-c:\users\bk161\gamedesign\homework5\nyucodebase\main.cpp(516): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-c:\users\bk161\gamedesign\homework5\nyucodebase\main.cpp(520): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-  NYUCodebase.vcxproj -> C:\Users\bk161\gamedesign\Homework5\Debug\NYUCodebase.exe
+c:\users\brian kao\gamedesign\homework5\nyucodebase\main.cpp(112): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\users\brian kao\gamedesign\homework5\nyucodebase\main.cpp(113): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\users\brian kao\gamedesign\homework5\nyucodebase\main.cpp(142): warning C4018: '<': signed/unsigned mismatch
+c:\users\brian kao\gamedesign\homework5\nyucodebase\main.cpp(189): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\users\brian kao\gamedesign\homework5\nyucodebase\main.cpp(240): warning C4244: 'return': conversion from 'double' to 'float', possible loss of data
+c:\users\brian kao\gamedesign\homework5\nyucodebase\main.cpp(294): warning C4018: '<': signed/unsigned mismatch
+c:\users\brian kao\gamedesign\homework5\nyucodebase\main.cpp(303): warning C4018: '<': signed/unsigned mismatch
+c:\users\brian kao\gamedesign\homework5\nyucodebase\main.cpp(322): warning C4018: '<': signed/unsigned mismatch
+c:\users\brian kao\gamedesign\homework5\nyucodebase\main.cpp(328): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+c:\users\brian kao\gamedesign\homework5\nyucodebase\main.cpp(331): warning C4018: '<': signed/unsigned mismatch
+c:\users\brian kao\gamedesign\homework5\nyucodebase\main.cpp(352): warning C4018: '<': signed/unsigned mismatch
+c:\users\brian kao\gamedesign\homework5\nyucodebase\main.cpp(358): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+c:\users\brian kao\gamedesign\homework5\nyucodebase\main.cpp(361): warning C4018: '<': signed/unsigned mismatch
+c:\users\brian kao\gamedesign\homework5\nyucodebase\main.cpp(419): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\brian kao\gamedesign\homework5\nyucodebase\main.cpp(429): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\brian kao\gamedesign\homework5\nyucodebase\main.cpp(434): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\brian kao\gamedesign\homework5\nyucodebase\main.cpp(439): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\brian kao\gamedesign\homework5\nyucodebase\main.cpp(444): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\brian kao\gamedesign\homework5\nyucodebase\main.cpp(543): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\brian kao\gamedesign\homework5\nyucodebase\main.cpp(548): warning C4305: 'argument': truncation from 'double' to 'float'
+  NYUCodebase.vcxproj -> C:\Users\Brian Kao\gamedesign\Homework5\Debug\NYUCodebase.exe
