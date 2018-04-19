@@ -330,10 +330,10 @@ int main(int argc, char *argv[])
 	Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 4096);
 
 	
-	laser = Mix_LoadWAV("explode.wav");
+	laser = Mix_LoadWAV("pistal.wav");
 
 	
-	explosion = Mix_LoadWAV("pistal.wav");
+	explosion = Mix_LoadWAV("explode.wav");
 
 	Mix_Music *music;
 	music = Mix_LoadMUS("Lobo_Loco_-_13_-_Funky_Machine_ID_874.mp3");
