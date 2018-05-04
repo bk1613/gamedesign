@@ -16,6 +16,8 @@
 #include <iostream>
 #include <sstream>
 #include <SDL_mixer.h>
+#include <random>
+#include <time.h>
 #include "FlareMap.h"
 
 #ifdef _WINDOWS
@@ -277,24 +279,74 @@ float easeOut(float from, float to, float time) {
 	float tVal = 1.0f - (oneMinusT * oneMinusT * oneMinusT * oneMinusT * oneMinusT);
 	return (1.0f - tVal)*from + tVal * to;
 }
-class Particle { public:         
+class Particle { 
+public: 
+	Particle() {
+		position_x = 0;
+		position_y = 0;
+		velocity_x = 0;
+		velocity_y = 0;
+		lifetime = 0;
+	}
 	float position_x; 
 	float position_y;
 	float velocity_y; 
 	float velocity_x;
 	float lifetime; 
 };
-
+bool particleDrawn = false;
 class ParticleEmitter { 
 public:         
-	ParticleEmitter(unsigned int particleCount);  
-	ParticleEmitter();
+	ParticleEmitter(unsigned int particleCount) : numparticle(particleCount){
+
+		for (int i = 0; i < particleCount; ++i) {
+			Particle exp;
+			exp.position_x = 0;
+			exp.position_y = 0;
+			exp.velocity_x = 0;
+			exp.velocity_y = 0;
+			exp.lifetime = 0;
+			maxLifetime = 5.5f;
+			particles.push_back(exp);
+		}
+	}
+	void render(ShaderProgram *programuntextured) {
+		vector<float> vertices;
+		for (int i = 0; i < particles.size(); i++)
+		{
+			//if (particles[i].lifetime < maxLifetime) {
+				vertices.push_back(particles[i].position_x);
+				vertices.push_back(particles[i].position_y);
+
+			//}
+		}
+		glVertexAttribPointer(programuntextured->positionAttribute, 2, GL_FLOAT, false, 0, vertices.data());
+		glEnableVertexAttribArray(programuntextured->positionAttribute);
+		glDrawArrays(GL_POINTS, 0, particles.size());
+
+	}
+	void update(float elapsed) {
+		for (int i = 0; i < numparticle; ++i) {
+			if (particleDrawn) {
+				particles[i].lifetime += elapsed;
+			}
+			velocity_x += gravity_x * elapsed;
+			velocity_y += gravity_y * elapsed;
+			particles[i].position_x += velocity_x * elapsed;
+			particles[i].position_y += velocity_y * elapsed;
+
+		}
+
+	}
+	unsigned int numparticle;
 	float position_x;
 	float position_y;
+	float velocity_x;
+	float velocity_y;
 	float gravity_x; 
 	float gravity_y;
 	float maxLifetime;              
-	std::vector<Particle> particles; 
+	vector<Particle> particles; 
 };
 
 Gamestate state;
@@ -306,9 +358,14 @@ Matrix projectionMatrix;
 Matrix modelMatrix;
 Matrix mapmodelMatrix;
 Matrix modelMatrixtext;
+Matrix modelMatrixuntext;
 Matrix viewMatrix;
+ParticleEmitter part(12);
+ShaderProgram programuntextured;
 int currentMap = 0;
-int pi;
+int playerdirection;
+float rad;
+ 
 
 void LoadNewMap(const std::string &fileName) {
 
@@ -325,9 +382,12 @@ void LoadNewMap(const std::string &fileName) {
 	}
 
 }
-
+Matrix projectionMatrixuntext;
 void Update(float elapsed) {
-
+	if (particleDrawn) {
+		part.update(elapsed);
+	}
+	
 	const Uint8 *keys = SDL_GetKeyboardState(NULL);
 	playerpos.acceleration_x = 0.0f;
 	playerpos.acceleration_x = 0.0f;
@@ -336,20 +396,20 @@ void Update(float elapsed) {
 
 	if (keys[SDL_SCANCODE_RIGHT]) {
 		playerpos.acceleration_x = 1.5f;
-		pi = 3;
+		playerdirection = 3;
 
 	}
 	else if (keys[SDL_SCANCODE_LEFT]) {
 		playerpos.acceleration_x = -1.5f;
-		pi = 1;
+		playerdirection = 1;
 	}
 	else if (keys[SDL_SCANCODE_UP]) {
-		playerpos.velocity_y = 2.0f;
-		pi = 2;
+		playerpos.velocity_y = 1.5f;
+		playerdirection = 2;
 	}
 	else if (keys[SDL_SCANCODE_DOWN]) {
-		playerpos.velocity_y = -2.0f;
-		pi = 0;
+		playerpos.velocity_y = -1.5f;
+		playerdirection = 0;
 	}
 
 	playerpos.velocity_x = lerp(playerpos.velocity_x, 0.0f, elapsed * playerpos.friction_x);
@@ -380,11 +440,50 @@ void Update(float elapsed) {
 			if (BoxBoxCollision(enemys[j].position_x, enemys[j].position_y, 0.35, 0.35, bullets[i].position_x, bullets[i].position_y, 0.025 * 2, 0.085 * 2)) {
 				bullets[i].position_x = 10.0; // backpos.shippositionX;
 				bullets[i].position_y = 10.0;
+				part.position_x = enemys[j].position_x;
+				part.position_y = enemys[j].position_y;
+				//adjustparticlepostion
+				for (int i = 0; i < part.numparticle; ++i) {
+					part.particles[i].position_x = enemys[j].position_x;
+					part.particles[i].position_y = enemys[j].position_y;
+					part.particles[i].lifetime = 0;
+				}
+				part.gravity_x = 0;
+				part.gravity_y = -2.0f;
+				part.velocity_x = 2.0f;
+				part.velocity_y = 2.5f;
+				//render particaleemitter
+				
+				modelMatrixuntext.Identity();
+				modelMatrixuntext.Translate(part.position_x, part.position_y, 0);
+				programuntextured.SetModelMatrix(modelMatrixuntext);
+				programuntextured.SetProjectionMatrix(projectionMatrixuntext);
+				programuntextured.SetViewMatrix(viewMatrix);
+				part.render(&programuntextured);
+				particleDrawn = true;
 				enemys[j].position_x = 4.76;
-				enemys[j].position_x = 4.76;
+				enemys[j].position_y = 4.76;
+				Mix_PlayChannel(-1, explosion, 0);
+				
+
+				
 			}
+			else {
+				part.gravity_x = 0;
+				part.gravity_y = 0.0f;
+				part.velocity_x = 0.0f;
+				part.velocity_y = 0.0f;
+				particleDrawn = false;
+			}
+			
 		}
 	}
+
+	rad = sqrt(sqrt(enemy.position_x - playerpos.position_x) + sqrt(enemy.position_y - playerpos.position_y));
+
+	//if (rad < .75) {
+
+	//}
 
 	int tileX1 = 0;
 	int tileY2 = 0;
@@ -403,13 +502,13 @@ void Update(float elapsed) {
 
 		}
 		else if (isexit(map->mapData[tileY2][tileX1])) {
-			if (currentMap == 0) {
+			if (currentMap == 1) {
 
 				LoadNewMap("cave.txt");
 
 			}
 
-			else if (currentMap == 1) {
+			else if (currentMap == 2) {
 
 				LoadNewMap("castlemap.txt");
 
@@ -425,13 +524,13 @@ void Update(float elapsed) {
 
 		}
 		else if (isexit(map->mapData[tileY2][tileX1])) {
-			if (currentMap == 0) {
+			if (currentMap == 1) {
 
 				LoadNewMap("cave.txt");
 
 			}
 
-			else if (currentMap == 1) {
+			else if (currentMap == 2) {
 
 				LoadNewMap("castlemap.txt");
 
@@ -440,6 +539,7 @@ void Update(float elapsed) {
 
 
 	}
+
 	int tileX = 0;
 	int tileY = 0;
 
@@ -455,13 +555,13 @@ void Update(float elapsed) {
 
 		}
 		else if (isexit(map->mapData[tileY2][tileX1])) {
-			if (currentMap == 0) {
+			if (currentMap == 1) {
 
 				LoadNewMap("cave.txt");
 
 			}
 
-			else if (currentMap == 1) {
+			else if (currentMap == 2) {
 
 				LoadNewMap("castlemap.txt");
 
@@ -479,13 +579,13 @@ void Update(float elapsed) {
 
 		}
 		else if (isexit(map->mapData[tileY2][tileX1])) {
-			if (currentMap == 0) {
+			if (currentMap == 1) {
 
 				LoadNewMap("cave.txt");
 
 			}
 
-			else if (currentMap == 1) {
+			else if (currentMap == 2) {
 
 				LoadNewMap("castlemap.txt");
 
@@ -528,11 +628,10 @@ int main(int argc, char *argv[])
 	vector<float> texCoordData;
 	int SPRITE_COUNT_X = 24;
 	int SPRITE_COUNT_Y = 16;
-
-	ShaderProgram programuntextured;
+	
 	programuntextured.Load(RESOURCE_FOLDER "vertex.glsl", RESOURCE_FOLDER "fragment.glsl");
-	Matrix projectionMatrixuntext;
-	Matrix modelMatrixuntext;
+	
+	
 	Matrix viewMatrixuntext;
 	programuntextured.SetModelMatrix(modelMatrixuntext);
 
@@ -545,10 +644,11 @@ int main(int argc, char *argv[])
 	programtextured.Load(RESOURCE_FOLDER"vertex_textured.glsl", RESOURCE_FOLDER"fragment_textured.glsl");
 	GLuint player = LoadTexture("george_0.png");
 	GLuint backgroun1 = LoadTexture("dirt-tiles.png");
-	GLuint backgroun2 = LoadTexture("NES - The Legend of Zelda - Overworld Tiles2.png");
+	
 	GLuint backgroun3 = LoadTexture("Wii - Final Fantasy 4 The After Years - Castle Interior Tiles.png");
 	GLuint backgroun4 = LoadTexture("arne_sprites.png");
 	GLuint dragon = LoadTexture("dragonsprite.png");
+	GLuint dragon2 = LoadTexture("dragon2.png");
 	GLuint text = LoadTexture("font1.png");
 	Entity entity;
 
@@ -570,6 +670,8 @@ int main(int argc, char *argv[])
 
 	const int runAnimation[] = { 1, 5, 9, 13 };
 	const int runAnimation2[] = { 3, 7, 11, 15 };
+	const int runAmimation3[] = { 2, 6, 10, 14 };
+	const int runAmimation4[] = { 0, 4, 8, 12 };
 	const int numFrames = 5;
 	float animationElapsed = 0.0f;
 	float framesPerSecond = 30.0f;
@@ -596,6 +698,7 @@ int main(int argc, char *argv[])
 	programtextured.SetProjectionMatrix(projectionMatrix);
 	programtextured.SetViewMatrix(viewMatrix);
 
+	srand(time(NULL));
 
 	//End Setup
 	//Running program
@@ -618,28 +721,27 @@ int main(int argc, char *argv[])
 
 				newbullt.position_x = playerpos.position_x;
 				newbullt.position_y = playerpos.position_y;
-				
 			
 				float bulletVelocity = 1.0f;
 				// set x and y velocity based on player direction
-				switch (pi)
+				switch (playerdirection)
 				{
-					case 0:
-						newbullt.velocity_x = 0;
-						newbullt.velocity_y = -bulletVelocity;
+				case 0:
+					newbullt.velocity_x = 0;
+					newbullt.velocity_y = -bulletVelocity * 2;
 					break;
-					case 2:
-						newbullt.velocity_x = 0;
-						newbullt.velocity_y = bulletVelocity;
+				case 2:
+					newbullt.velocity_x = 0;
+					newbullt.velocity_y = bulletVelocity * 2;
 					break;
-					case 3:
-						newbullt.velocity_x = bulletVelocity;
-						newbullt.velocity_y = 0;
-						break;
-					case 1:
-						newbullt.velocity_x = -bulletVelocity;
-						newbullt.velocity_y = 0;
-						break;
+				case 3:
+					newbullt.velocity_x = bulletVelocity * 2;
+					newbullt.velocity_y = 0;
+					break;
+				case 1:
+					newbullt.velocity_x = -bulletVelocity * 2;
+					newbullt.velocity_y = 0;
+					break;
 				}
 
 				newbullt.timeAlive = 0.0f;
@@ -684,14 +786,14 @@ int main(int argc, char *argv[])
 			}
 			accumulator = elapsed;
 
-			/*animationElapsed += elapsed;
+			animationElapsed += elapsed;
 			if (animationElapsed > 1.0 / framesPerSecond) {
 			currentIndex++;
 			animationElapsed = 0.0;
 			if (currentIndex > numFrames - 1) {
 			currentIndex = 0;
 			}
-			}*/
+			}
 
 			
 
@@ -752,8 +854,24 @@ int main(int argc, char *argv[])
 					}
 				}
 			}
+			switch (currentMap) {
+
+			case 0:
+				glBindTexture(GL_TEXTURE_2D, backgroun1);
+				// bind level 1 texture
+
+				break;
+
+			case 1:
+				glBindTexture(GL_TEXTURE_2D, backgroun1);
+				//bind level 2 texture
+
+				break;
+			case 2:
+				glBindTexture(GL_TEXTURE_2D, backgroun3);
+				break;
+			}
 			
-			glBindTexture(GL_TEXTURE_2D, backgroun1);
 			glUseProgram(programtextured.programID);
 
 			glVertexAttribPointer(programtextured.positionAttribute, 2, GL_FLOAT, false, 0, vertexData.data());
@@ -767,16 +885,32 @@ int main(int argc, char *argv[])
 			glDisableVertexAttribArray(programtextured.positionAttribute);
 			glDisableVertexAttribArray(programtextured.texCoordAttribute);
 
-
+			
 			modelMatrix.Identity();
 			modelMatrix.Translate(playerpos.position_x, playerpos.position_y, 0.0f);
 			programtextured.SetModelMatrix(modelMatrix);
 			programtextured.SetProjectionMatrix(projectionMatrix);
-
-			
 			glBindTexture(GL_TEXTURE_2D, player);
-			DrawSpriteSheetSprite(programtextured, pi, 4, 4);
-
+			switch (playerdirection) {
+			case 0:
+				
+				DrawSpriteSheetSprite(programtextured, runAmimation4[currentIndex], 4, 4);
+				break;
+			case 1:
+				
+				DrawSpriteSheetSprite(programtextured, runAnimation[currentIndex], 4, 4);
+				break;
+			case 2:
+				
+				DrawSpriteSheetSprite(programtextured, runAmimation3[currentIndex], 4, 4);
+				break;
+			case 3:
+				
+				DrawSpriteSheetSprite(programtextured, runAnimation2[currentIndex], 4, 4);
+				break;
+			}
+			
+			
 			//coins
 			for (int b = 0; b < coin.size(); b++) {
 				modelMatrix.Identity();
@@ -799,6 +933,18 @@ int main(int argc, char *argv[])
 				DrawSpriteSheetSprite(programtextured, 1, 16, 8);
 
 			}
+
+			for (int b = 0; b < dragons.size(); b++) {
+				modelMatrix.Identity();
+				modelMatrix.Translate(dragons[b].position_x, dragons[b].position_y, 0.0f);
+				programtextured.SetModelMatrix(modelMatrix);
+				programtextured.SetProjectionMatrix(projectionMatrix);
+
+				glBindTexture(GL_TEXTURE_2D, dragon2);
+				DrawSpriteSheetSprite(programtextured, 8, 16, 8);
+
+			}
+
 			//enemy
 			for (int b = 0; b < enemys.size(); b++) {
 				modelMatrix.Identity();
@@ -810,16 +956,8 @@ int main(int argc, char *argv[])
 				DrawSpriteSheetSprite(programtextured, 98, 16, 8);
 
 			}
-			/*ParticleEmitter part;
-			vector<float> vertices;      
-			for (int i = 0; i < part.particles.size(); i++) 
-			{ 
-				vertices.push_back(part.particles[i].position_x);        
-				vertices.push_back(part.particles[i].position_y);
-			}      
-			glVertexAttribPointer(programtextured.positionAttribute, 2, GL_FLOAT, false, 0, vertices.data()); 
-			glEnableVertexAttribArray(programtextured.positionAttribute);
-			glDrawArrays(GL_POINTS, 0, part.particles.size());*/
+			
+			
 			break;
 		}
 

@@ -1,25 +1,31 @@
 ﻿  main.cpp
-c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(101): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(102): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(131): warning C4018: '<': signed/unsigned mismatch
-c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(190): warning C4244: 'return': conversion from 'double' to 'float', possible loss of data
-c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(321): warning C4018: '<': signed/unsigned mismatch
-c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(363): warning C4018: '<': signed/unsigned mismatch
-c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(373): warning C4018: '<': signed/unsigned mismatch
-c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(379): warning C4018: '<': signed/unsigned mismatch
-c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(380): warning C4305: 'argument': truncation from 'double' to 'float'
-c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(383): warning C4305: '=': truncation from 'double' to 'float'
-c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(384): warning C4305: '=': truncation from 'double' to 'float'
-c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(509): warning C4305: 'argument': truncation from 'double' to 'float'
-c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(510): warning C4305: 'argument': truncation from 'double' to 'float'
-c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(539): warning C4305: 'argument': truncation from 'double' to 'float'
-c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(556): warning C4305: 'argument': truncation from 'double' to 'float'
-c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(665): warning C4305: 'argument': truncation from 'double' to 'float'
-c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(670): warning C4305: 'argument': truncation from 'double' to 'float'
-c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(699): warning C4018: '<': signed/unsigned mismatch
-c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(705): warning C4838: conversion from 'double' to 'float' requires a narrowing conversion
-c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(705): warning C4305: 'initializing': truncation from 'double' to 'float'
-c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(781): warning C4018: '<': signed/unsigned mismatch
-c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(792): warning C4018: '<': signed/unsigned mismatch
-c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(803): warning C4018: '<': signed/unsigned mismatch
+c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(103): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(104): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(133): warning C4018: '<': signed/unsigned mismatch
+c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(192): warning C4244: 'return': conversion from 'double' to 'float', possible loss of data
+c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(302): warning C4018: '<': signed/unsigned mismatch
+c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(315): warning C4018: '<': signed/unsigned mismatch
+c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(329): warning C4018: '<': signed/unsigned mismatch
+c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(378): warning C4018: '<': signed/unsigned mismatch
+c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(423): warning C4018: '<': signed/unsigned mismatch
+c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(433): warning C4018: '<': signed/unsigned mismatch
+c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(439): warning C4018: '<': signed/unsigned mismatch
+c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(440): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(446): warning C4018: '<': signed/unsigned mismatch
+c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(464): warning C4305: '=': truncation from 'double' to 'float'
+c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(465): warning C4305: '=': truncation from 'double' to 'float'
+c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(609): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(610): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(639): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(657): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(702): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(768): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(773): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(802): warning C4018: '<': signed/unsigned mismatch
+c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(808): warning C4838: conversion from 'double' to 'float' requires a narrowing conversion
+c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(808): warning C4305: 'initializing': truncation from 'double' to 'float'
+c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(916): warning C4018: '<': signed/unsigned mismatch
+c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(927): warning C4018: '<': signed/unsigned mismatch
+c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(938): warning C4018: '<': signed/unsigned mismatch
+c:\users\brian kao\gamedesign\final project\nyucodebase\main.cpp(950): warning C4018: '<': signed/unsigned mismatch
   NYUCodebase.vcxproj -> C:\Users\Brian Kao\gamedesign\final project\Debug\NYUCodebase.exe
