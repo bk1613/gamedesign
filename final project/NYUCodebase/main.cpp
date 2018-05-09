@@ -122,6 +122,31 @@ void DrawSpriteSheetSprite(ShaderProgram &program, int index, int spriteCountX, 
 	glDisableVertexAttribArray(program.texCoordAttribute);
 
 }
+void DrawSpriteSheetSpritedragon(ShaderProgram &program, int index, int spriteCountX, int spriteCountY) {
+	float u = (float)(((int)index) % spriteCountX) / (float)spriteCountX;
+	float v = (float)(((int)index) / spriteCountX) / (float)spriteCountY;
+	float spriteWidth = 1.0 / (float)spriteCountX;
+	float spriteHeight = 1.0 / (float)spriteCountY;
+	float texCoords[] = { u, v + spriteHeight,
+		u + spriteWidth, v,
+		u, v,
+		u + spriteWidth, v,
+		u, v + spriteHeight,
+		u + spriteWidth, v + spriteHeight };
+	float vertices[] = { -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, -1.0f };
+
+	glVertexAttribPointer(program.positionAttribute, 2, GL_FLOAT, false, 0, vertices);
+	glEnableVertexAttribArray(program.positionAttribute);
+
+	glVertexAttribPointer(program.texCoordAttribute, 2, GL_FLOAT, false, 0, texCoords);
+	glEnableVertexAttribArray(program.texCoordAttribute);
+
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+	glDisableVertexAttribArray(program.positionAttribute);
+	glDisableVertexAttribArray(program.texCoordAttribute);
+
+}
 
 
 void DrawText(ShaderProgram *program, int fontTexture, string text, float size, float spacing) {
@@ -193,18 +218,28 @@ float lerp(float v0, float v1, float t) { return (1.0 - t)*v0 + t * v1; }
 
 class Gamestate {
 public:
-
+	int score = 0;
 	bool gamestop = false;
 };
 
 Entity coins;
 Entity enemy;
 Entity dragon;
+Entity dragon2;
+Entity wizard;
+Entity solidar;
+Entity forestenemy;
+Entity knight;
 Entity playerpos;
 vector<Entity> coin;
 vector<Entity> enemys;
 vector<Entity> bullets;
 vector<Entity> dragons;
+vector<Entity> dragon2s;
+vector<Entity> soliders;
+vector<Entity> forests;
+vector<Entity> knights;
+vector<Entity> wizards;
 
 void PlaceEntity(std::string type, float x, float y) {
 	// place your entity at x, y based on type string
@@ -228,6 +263,32 @@ void PlaceEntity(std::string type, float x, float y) {
 		dragon.position_y = y;
 		dragons.push_back(dragon);
 	}
+	else if (type == "dragon2") {
+		dragon2.position_x = x;
+		dragon2.position_y = y;
+		dragon2s.push_back(dragon2);
+	}
+
+	else if (type == "solidar") {
+		solidar.position_x = x;
+		solidar.position_y = y;
+		soliders.push_back(solidar);
+	}
+	else if (type == "wizard") {
+		wizard.position_x = x;
+		wizard.position_y = y;
+		wizards.push_back(wizard);
+	}
+	else if (type == "knight") {
+		knight.position_x = x;
+		knight.position_y = y;
+		knights.push_back(knight);
+	}
+	else if (type == "forest") {
+		forestenemy.position_x = x;
+		forestenemy.position_y = y;
+		forests.push_back(forestenemy);
+	}
 }
 
 void worldToTileCoordinates(float worldX, float worldY, int *gridX, int *gridY) {
@@ -246,7 +307,7 @@ bool BoxBoxCollision(float x1, float y1, float w1, float h1, float x2, float y2,
 }
 
 bool issolid(int tileindex) {
-	return tileindex != 0;
+	return tileindex != 0 && tileindex != 170;
 }
 
 bool isexit(int tileindex) {
@@ -318,11 +379,11 @@ public:
 				vertices.push_back(particles[i].position_x);
 				vertices.push_back(particles[i].position_y);
 
-			//}
+			glVertexAttribPointer(programuntextured->positionAttribute, 2, GL_FLOAT, false, 0, vertices.data());
+			glEnableVertexAttribArray(programuntextured->positionAttribute);
+			glDrawArrays(GL_POINTS, 0, particles.size());
 		}
-		glVertexAttribPointer(programuntextured->positionAttribute, 2, GL_FLOAT, false, 0, vertices.data());
-		glEnableVertexAttribArray(programuntextured->positionAttribute);
-		glDrawArrays(GL_POINTS, 0, particles.size());
+		
 
 	}
 	void update(float elapsed) {
@@ -330,14 +391,24 @@ public:
 			if (particleDrawn) {
 				particles[i].lifetime += elapsed;
 			}
-			velocity_x += gravity_x * elapsed;
-			velocity_y += gravity_y * elapsed;
-			particles[i].position_x += velocity_x * elapsed;
-			particles[i].position_y += velocity_y * elapsed;
+			particles[i].velocity_x += gravity_x * elapsed;
+			particles[i].velocity_y += gravity_y * elapsed;
+			particles[i].position_x += particles[i].velocity_x * elapsed;
+			particles[i].position_y += particles[i].velocity_y * elapsed;
 
 		}
 
 	}
+	void reset() {
+		for (int i = 0; i < numparticle; ++i) {
+			particles[i].position_x = 0;
+			particles[i].position_y = 0;
+			particles[i].velocity_x = -1.0 + ((float)rand()/(float)RAND_MAX * 2.0);
+			particles[i].velocity_y = (float)rand() / (float)RAND_MAX;
+			particles[i].lifetime = 0;
+		}
+	}
+
 	unsigned int numparticle;
 	float position_x;
 	float position_y;
@@ -365,7 +436,9 @@ ShaderProgram programuntextured;
 int currentMap = 0;
 int playerdirection;
 float rad;
- 
+enum GameMode { TITLE_SCREEN, GAME, GAME_OVER };
+GameMode mode = TITLE_SCREEN;
+
 
 void LoadNewMap(const std::string &fileName) {
 
@@ -374,19 +447,30 @@ void LoadNewMap(const std::string &fileName) {
 	map = new FlareMap();
 
 	map->Load(fileName);
+	coin.clear();
+	enemys.clear();
+	bullets.clear();
+	
+	soliders.clear();
+	forests.clear();
+	knights.clear();
+	wizards.clear();
 
+	dragons.clear();
 	for (int i = 0; i < map->entities.size(); i++) {
 
 		PlaceEntity(map->entities[i].type, map->entities[i].x * TILE_SIZE, map->entities[i].y * -TILE_SIZE);
 
 	}
+	
 
 }
+
 Matrix projectionMatrixuntext;
 void Update(float elapsed) {
-	if (particleDrawn) {
-		part.update(elapsed);
-	}
+	
+	part.update(elapsed);
+	
 	
 	const Uint8 *keys = SDL_GetKeyboardState(NULL);
 	playerpos.acceleration_x = 0.0f;
@@ -418,12 +502,152 @@ void Update(float elapsed) {
 	playerpos.velocity_x += playerpos.acceleration_x * elapsed;
 	playerpos.velocity_y += playerpos.acceleration_y * elapsed;
 
+	
+	for (int i = 0; i < enemys.size(); i++) {
+		rad = sqrt(powf(enemys[i].position_x - playerpos.position_x, 2) + powf(enemys[i].position_y - playerpos.position_y, 2));
+		enemys[i].acceleration_x = 0.0f;
+		enemys[i].acceleration_y = 0.0f;
+	
+		if (rad < 4.0) {
+			enemys[i].acceleration_x = (playerpos.position_x - enemys[i].position_x)/rad * .5;
+			enemys[i].acceleration_y = (playerpos.position_y - enemys[i].position_y)/rad * .5;
+		}
+		enemys[i].velocity_x = lerp(enemys[i].velocity_x, 0.0f, elapsed * enemys[i].friction_x);
+		enemys[i].velocity_y = lerp(enemys[i].velocity_y, 0.0f, elapsed * enemys[i].friction_y);
 
+		enemys[i].velocity_x += enemys[i].acceleration_x * elapsed;
+		enemys[i].velocity_y += enemys[i].acceleration_y * elapsed;
+
+		enemys[i].position_x += enemys[i].velocity_x * elapsed;
+		enemys[i].position_y += enemys[i].velocity_y * elapsed;
+
+	}
+	for (int i = 0; i < soliders.size(); i++) {
+		rad = sqrt(powf(soliders[i].position_x - playerpos.position_x, 2) + powf(soliders[i].position_y - playerpos.position_y, 2));
+		soliders[i].acceleration_x = 0.0f;
+		soliders[i].acceleration_y = 0.0f;
+
+		if (rad < 4.0) {
+			soliders[i].acceleration_x = (playerpos.position_x - soliders[i].position_x) / rad * .5;
+			soliders[i].acceleration_y = (playerpos.position_y - soliders[i].position_y) / rad * .5;
+		}
+		soliders[i].velocity_x = lerp(soliders[i].velocity_x, 0.0f, elapsed * soliders[i].friction_x);
+		soliders[i].velocity_y = lerp(soliders[i].velocity_y, 0.0f, elapsed * soliders[i].friction_y);
+
+		soliders[i].velocity_x += soliders[i].acceleration_x * elapsed;
+		soliders[i].velocity_y += soliders[i].acceleration_y * elapsed;
+
+		soliders[i].position_x += soliders[i].velocity_x * elapsed;
+		soliders[i].position_y += soliders[i].velocity_y * elapsed;
+
+	}
+	for (int i = 0; i < knights.size(); i++) {
+		rad = sqrt(powf(knights[i].position_x - playerpos.position_x, 2) + powf(knights[i].position_y - playerpos.position_y, 2));
+		knights[i].acceleration_x = 0.0f;
+		knights[i].acceleration_y = 0.0f;
+
+		if (rad < 4.0) {
+			knights[i].acceleration_x = (playerpos.position_x - knights[i].position_x) / rad * .5;
+			knights[i].acceleration_y = (playerpos.position_y - knights[i].position_y) / rad * .5;
+		}
+		knights[i].velocity_x = lerp(knights[i].velocity_x, 0.0f, elapsed * knights[i].friction_x);
+		knights[i].velocity_y = lerp(knights[i].velocity_y, 0.0f, elapsed * knights[i].friction_y);
+
+		knights[i].velocity_x += knights[i].acceleration_x * elapsed;
+		knights[i].velocity_y += knights[i].acceleration_y * elapsed;
+
+		knights[i].position_x += knights[i].velocity_x * elapsed;
+		knights[i].position_y += knights[i].velocity_y * elapsed;
+
+	}
+
+	for (int i = 0; i < forests.size(); i++) {
+		rad = sqrt(powf(forests[i].position_x - playerpos.position_x, 2) + powf(forests[i].position_y - playerpos.position_y, 2));
+		forests[i].acceleration_x = 0.0f;
+		forests[i].acceleration_y = 0.0f;
+
+		if (rad < 4.0) {
+			forests[i].acceleration_x = (playerpos.position_x - forests[i].position_x) / rad * .5;
+			forests[i].acceleration_y = (playerpos.position_y - forests[i].position_y) / rad * .5;
+		}
+		forests[i].velocity_x = lerp(forests[i].velocity_x, 0.0f, elapsed * forests[i].friction_x);
+		forests[i].velocity_y = lerp(forests[i].velocity_y, 0.0f, elapsed * forests[i].friction_y);
+
+		forests[i].velocity_x += forests[i].acceleration_x * elapsed;
+		forests[i].velocity_y += forests[i].acceleration_y * elapsed;
+
+		forests[i].position_x += forests[i].velocity_x * elapsed;
+		forests[i].position_y += forests[i].velocity_y * elapsed;
+
+	}
+
+	for (int i = 0; i < wizards.size(); i++) {
+		rad = sqrt(powf(wizards[i].position_x - playerpos.position_x, 2) + powf(wizards[i].position_y - playerpos.position_y, 2));
+		wizards[i].acceleration_x = 0.0f;
+		wizards[i].acceleration_y = 0.0f;
+
+		if (rad < 4.0) {
+			wizards[i].acceleration_x = (playerpos.position_x - wizards[i].position_x) / rad * .5;
+			wizards[i].acceleration_y = (playerpos.position_y - wizards[i].position_y) / rad * .5;
+		}
+		wizards[i].velocity_x = lerp(wizards[i].velocity_x, 0.0f, elapsed * wizards[i].friction_x);
+		wizards[i].velocity_y = lerp(wizards[i].velocity_y, 0.0f, elapsed * wizards[i].friction_y);
+
+		wizards[i].velocity_x += wizards[i].acceleration_x * elapsed;
+		wizards[i].velocity_y += wizards[i].acceleration_y * elapsed;
+
+		wizards[i].position_x += wizards[i].velocity_x * elapsed;
+		wizards[i].position_y += wizards[i].velocity_y * elapsed;
+
+	}
+
+
+
+	for (int i = 0; i < dragons.size(); i++) {
+		rad = sqrt(powf(dragons[i].position_x - playerpos.position_x, 2) + powf(dragons[i].position_y - playerpos.position_y, 2));
+		dragons[i].acceleration_x = 0.0f;
+		dragons[i].acceleration_y = 0.0f;
+
+		if (rad < 3.5) {
+			dragons[i].acceleration_x = (playerpos.position_x - dragons[i].position_x) / rad;
+			dragons[i].acceleration_y = (playerpos.position_y - dragons[i].position_y) / rad;
+		}
+		dragons[i].velocity_x = lerp(dragons[i].velocity_x, 0.0f, elapsed * dragons[i].friction_x);
+		dragons[i].velocity_y = lerp(dragons[i].velocity_y, 0.0f, elapsed * dragons[i].friction_y);
+
+		dragons[i].velocity_x += dragons[i].acceleration_x * elapsed;
+		dragons[i].velocity_y += dragons[i].acceleration_y * elapsed;
+
+		dragons[i].position_x += dragons[i].velocity_x * elapsed;
+		dragons[i].position_y += dragons[i].velocity_y * elapsed;
+
+	}
+
+	for (int i = 0; i < dragon2s.size(); i++) {
+		rad = sqrt(powf(dragon2s[i].position_x - playerpos.position_x, 2) + powf(dragon2s[i].position_y - playerpos.position_y, 2));
+		dragon2s[i].acceleration_x = 0.0f;
+		dragon2s[i].acceleration_y = 0.0f;
+
+		if (rad < 3.5) {
+			dragon2s[i].acceleration_x = (playerpos.position_x - dragon2s[i].position_x) / rad;
+			dragon2s[i].acceleration_y = (playerpos.position_y - dragon2s[i].position_y) / rad;
+		}
+		dragon2s[i].velocity_x = lerp(dragon2s[i].velocity_x, 0.0f, elapsed * dragon2s[i].friction_x);
+		dragon2s[i].velocity_y = lerp(dragon2s[i].velocity_y, 0.0f, elapsed * dragon2s[i].friction_y);
+
+		dragon2s[i].velocity_x += dragon2s[i].acceleration_x * elapsed;
+		dragon2s[i].velocity_y += dragon2s[i].acceleration_y * elapsed;
+
+		dragon2s[i].position_x += dragon2s[i].velocity_x * elapsed;
+		dragon2s[i].position_y += dragon2s[i].velocity_y * elapsed;
+
+	}
 
 	for (int i = 0; i < coin.size(); i++) {
 		if (BoxBoxCollision(playerpos.position_x, playerpos.position_y, 0.5, 0.5, coin[i].position_x, coin[i].position_y, 0.5, 0.5)) {
 			coin[i].position_x = 1000.0f;
 			coin[i].position_y = 1000.0f;
+			state.score += 100;
 			Mix_PlayChannel(-1, coinscol, 0);
 		}
 	}
@@ -437,53 +661,147 @@ void Update(float elapsed) {
 
 		Entity backpos;
 		for (int j = 0; j < enemys.size(); j++) {
-			if (BoxBoxCollision(enemys[j].position_x, enemys[j].position_y, 0.35, 0.35, bullets[i].position_x, bullets[i].position_y, 0.025 * 2, 0.085 * 2)) {
+			if (BoxBoxCollision(enemys[j].position_x, enemys[j].position_y, 0.5, 0.5, bullets[i].position_x, bullets[i].position_y, 0.025 * 2, 0.085 * 2)) {
 				bullets[i].position_x = 10.0; // backpos.shippositionX;
 				bullets[i].position_y = 10.0;
 				part.position_x = enemys[j].position_x;
 				part.position_y = enemys[j].position_y;
 				//adjustparticlepostion
-				for (int i = 0; i < part.numparticle; ++i) {
-					part.particles[i].position_x = enemys[j].position_x;
-					part.particles[i].position_y = enemys[j].position_y;
-					part.particles[i].lifetime = 0;
-				}
+				part.gravity_x = 0;
+				part.gravity_y = -2.0f;
+				part.velocity_x = 2.0f;
+				part.velocity_y = 2.5f;
+				//render particaleemitter
+				enemys[j].position_x = 4.76;
+				enemys[j].position_y = 4.76;
+				Mix_PlayChannel(-1, explosion, 0);
+				part.reset();
+			}
+			
+		}
+		for (int j = 0; j < soliders.size(); j++) {
+			if (BoxBoxCollision(soliders[j].position_x, soliders[j].position_y, 0.5, 0.5, bullets[i].position_x, bullets[i].position_y, 0.025 * 2, 0.085 * 2)) {
+				bullets[i].position_x = 10.0; // backpos.shippositionX;
+				bullets[i].position_y = 10.0;
+				part.position_x = soliders[j].position_x;
+				part.position_y = soliders[j].position_y;
+				//adjustparticlepostion
+				part.gravity_x = 0;
+				part.gravity_y = -2.0f;
+				part.velocity_x = 2.0f;
+				part.velocity_y = 2.5f;
+				//render particaleemitter
+				soliders[j].position_x = 4.76;
+				soliders[j].position_y = 4.76;
+				Mix_PlayChannel(-1, explosion, 0);
+				part.reset();
+			}
+
+		}
+		for (int j = 0; j < wizards.size(); j++) {
+			if (BoxBoxCollision(wizards[j].position_x, wizards[j].position_y, 0.5, 0.5, bullets[i].position_x, bullets[i].position_y, 0.025 * 2, 0.085 * 2)) {
+				bullets[i].position_x = 10.0; // backpos.shippositionX;
+				bullets[i].position_y = 10.0;
+				
+				part.position_x = wizards[j].position_x;
+				part.position_y = wizards[j].position_y;
+				//adjustparticlepostion
 				part.gravity_x = 0;
 				part.gravity_y = -2.0f;
 				part.velocity_x = 2.0f;
 				part.velocity_y = 2.5f;
 				//render particaleemitter
 				
-				modelMatrixuntext.Identity();
-				modelMatrixuntext.Translate(part.position_x, part.position_y, 0);
-				programuntextured.SetModelMatrix(modelMatrixuntext);
-				programuntextured.SetProjectionMatrix(projectionMatrixuntext);
-				programuntextured.SetViewMatrix(viewMatrix);
-				part.render(&programuntextured);
-				particleDrawn = true;
-				enemys[j].position_x = 4.76;
-				enemys[j].position_y = 4.76;
+				wizards[j].position_x = 4.76;
+				wizards[j].position_y = 4.76;
+				
 				Mix_PlayChannel(-1, explosion, 0);
-				
+				part.reset();
+			}
 
-				
-			}
-			else {
-				part.gravity_x = 0;
-				part.gravity_y = 0.0f;
-				part.velocity_x = 0.0f;
-				part.velocity_y = 0.0f;
-				particleDrawn = false;
-			}
-			
 		}
+		for (int j = 0; j < forests.size(); j++) {
+			if (BoxBoxCollision(forests[j].position_x, forests[j].position_y, 0.5, 0.5, bullets[i].position_x, bullets[i].position_y, 0.025 * 2, 0.085 * 2)) {
+				bullets[i].position_x = 10.0; // backpos.shippositionX;
+				bullets[i].position_y = 10.0;
+				
+				part.position_x = forests[j].position_x;
+				part.position_y = forests[j].position_y;
+				//adjustparticlepostion
+				part.gravity_x = 0;
+				part.gravity_y = -2.0f;
+				part.velocity_x = 2.0f;
+				part.velocity_y = 2.5f;
+				//render particaleemitter
+				forests[j].position_x = 4.76;
+				forests[j].position_y = 4.76;
+				Mix_PlayChannel(-1, explosion, 0);
+				part.reset();
+			}
+
+		}
+		for (int j = 0; j < knights.size(); j++) {
+			if (BoxBoxCollision(knights[j].position_x, knights[j].position_y, 0.5, 0.5, bullets[i].position_x, bullets[i].position_y, 0.025 * 2, 0.085 * 2)) {
+				bullets[i].position_x = 10.0; // backpos.shippositionX;
+				bullets[i].position_y = 10.0;
+				
+				part.position_x = knights[j].position_x;
+				part.position_y = knights[j].position_y;
+				//adjustparticlepostion
+				part.gravity_x = 0;
+				part.gravity_y = -2.0f;
+				part.velocity_x = 2.0f;
+				part.velocity_y = 2.5f;
+				//render particaleemitter
+				
+				knights[j].position_x = 4.76;
+				knights[j].position_y = 4.76;
+				Mix_PlayChannel(-1, explosion, 0);
+				part.reset();
+			}
+
+		}
+
 	}
+	
+		for (int i = 0; i < enemys.size(); i++) {
+			if (BoxBoxCollision(playerpos.position_x, playerpos.position_y, 0.5, 0.5, enemys[i].position_x, enemys[i].position_y, 0.5, 0.5)) {
+				mode = GAME_OVER;
+			}
+		}
 
-	rad = sqrt(sqrt(enemy.position_x - playerpos.position_x) + sqrt(enemy.position_y - playerpos.position_y));
+		for (int i = 0; i < soliders.size(); i++) {
+			if (BoxBoxCollision(playerpos.position_x, playerpos.position_y, 0.5, 0.5, soliders[i].position_x, soliders[i].position_y, 0.5, 0.5)) {
+				mode = GAME_OVER;
+			}
+		}
+		for (int i = 0; i < wizards.size(); i++) {
+			if (BoxBoxCollision(playerpos.position_x, playerpos.position_y, 0.5, 0.5, wizards[i].position_x, wizards[i].position_y, 0.5, 0.5)) {
+				mode = GAME_OVER;
+			}
+		}
+		for (int i = 0; i < forests.size(); i++) {
+			if (BoxBoxCollision(playerpos.position_x, playerpos.position_y, 0.5, 0.5, forests[i].position_x, forests[i].position_y, 0.5, 0.5)) {
+				mode = GAME_OVER;
+			}
+		}
+		for (int i = 0; i < knights.size(); i++) {
+			if (BoxBoxCollision(playerpos.position_x, playerpos.position_y, 0.5, 0.5, knights[i].position_x, knights[i].position_y, 0.5, 0.5)) {
+				mode = GAME_OVER;
+			}
+		}
 
-	//if (rad < .75) {
+		for (int i = 0; i < dragons.size(); i++) {
+			if (BoxBoxCollision(playerpos.position_x, playerpos.position_y, 0.5, 0.5, dragons[i].position_x, dragons[i].position_y, 1.0, 1.0)) {
+				mode = GAME_OVER;
+			}
+		}
 
-	//}
+		for (int i = 0; i < dragon2s.size(); i++) {
+			if (BoxBoxCollision(playerpos.position_x, playerpos.position_y, 0.5, 0.5, dragon2s[i].position_x, dragon2s[i].position_y, 1.0, 1.0)) {
+				mode = GAME_OVER;
+			}
+		}
 
 	int tileX1 = 0;
 	int tileY2 = 0;
@@ -491,7 +809,7 @@ void Update(float elapsed) {
 	playerpos.position_y += playerpos.velocity_y * elapsed;
 
 	worldToTileCoordinates(playerpos.position_x, playerpos.position_y + 0.5f, &tileX1, &tileY2);
-	penetration = fabs((-TILE_SIZE * tileY2) - (playerpos.position_y + 0.5f));
+	penetration = fabs((-TILE_SIZE * tileY2) - TILE_SIZE -(playerpos.position_y + 0.5f));
 
 	if (tileX1 > 0 && tileX1 < map->mapWidth && tileY2 > 0 && tileY2 < map->mapHeight) {
 
@@ -499,38 +817,39 @@ void Update(float elapsed) {
 
 			playerpos.position_y -= penetration + 0.001f;
 			playerpos.velocity_y = 0.0f;
-
 		}
-		else if (isexit(map->mapData[tileY2][tileX1])) {
-			if (currentMap == 1) {
+		else if (isexit(map->mapData[tileY2][tileX1]) && state.score >= 3000) {
+			if (currentMap == 0) {
 
 				LoadNewMap("cave.txt");
 
 			}
 
-			else if (currentMap == 2) {
+			else if (currentMap == 1) {
 
 				LoadNewMap("castlemap.txt");
 
 			}
 		}
-
+	}
 		worldToTileCoordinates(playerpos.position_x, playerpos.position_y - 0.5f, &tileX1, &tileY2);
 		penetration = fabs((-TILE_SIZE * tileY2) - (playerpos.position_y - 0.5f));
+		if (tileX1 > 0 && tileX1 < map->mapWidth && tileY2 > 0 && tileY2 < map->mapHeight) {
 		if (issolid(map->mapData[tileY2][tileX1])) {
 
 			playerpos.position_y += penetration + 0.001f;
 			playerpos.velocity_y = 0.0f;
 
+
 		}
-		else if (isexit(map->mapData[tileY2][tileX1])) {
-			if (currentMap == 1) {
+		else if (isexit(map->mapData[tileY2][tileX1]) && state.score >= 3000) {
+			if (currentMap == 0) {
 
 				LoadNewMap("cave.txt");
 
 			}
 
-			else if (currentMap == 2) {
+			else if (currentMap == 1) {
 
 				LoadNewMap("castlemap.txt");
 
@@ -552,40 +871,41 @@ void Update(float elapsed) {
 
 			playerpos.velocity_x = 0.0f;
 			playerpos.position_x -= penetration * 0.001f;
-
 		}
-		else if (isexit(map->mapData[tileY2][tileX1])) {
-			if (currentMap == 1) {
+		else if (isexit(map->mapData[tileY][tileX]) && state.score >= 3000) {
+			if (currentMap == 0) {
 
 				LoadNewMap("cave.txt");
 
 			}
 
-			else if (currentMap == 2) {
+			else if (currentMap == 1) {
 
 				LoadNewMap("castlemap.txt");
 
 			}
 		}
 
-
+	}
 
 		worldToTileCoordinates(playerpos.position_x - 0.5f, playerpos.position_y, &tileX, &tileY);
+	
 		penetration = fabs((-TILE_SIZE * tileX + TILE_SIZE) - (playerpos.position_x - 0.5f));
+		if (tileY > 0 && tileY < map->mapHeight && tileX > 0 && tileX < map->mapWidth) {
 		if (issolid(map->mapData[tileY][tileX])) {
 
 			playerpos.velocity_x = 0.0f;
 			playerpos.position_x += penetration * 0.001f;
 
 		}
-		else if (isexit(map->mapData[tileY2][tileX1])) {
-			if (currentMap == 1) {
+		else if (isexit(map->mapData[tileY][tileX]) && state.score >= 3000) {
+			if (currentMap == 0) {
 
 				LoadNewMap("cave.txt");
 
 			}
 
-			else if (currentMap == 2) {
+			else if (currentMap == 1) {
 
 				LoadNewMap("castlemap.txt");
 
@@ -649,15 +969,17 @@ int main(int argc, char *argv[])
 	GLuint backgroun4 = LoadTexture("arne_sprites.png");
 	GLuint dragon = LoadTexture("dragonsprite.png");
 	GLuint dragon2 = LoadTexture("dragon2.png");
+	GLuint forestenemy = LoadTexture("enemyforrest.png");
+	GLuint wizardenemy = LoadTexture("enemywizard.png");
+	GLuint soliderenemy = LoadTexture("enemysolider.png");
+	GLuint knightrenemy = LoadTexture("enemyknight.png");
 	GLuint text = LoadTexture("font1.png");
 	Entity entity;
 
 
 	projectionMatrix.SetOrthoProjection(-3.55, 3.55, -2.0f, 2.0f, -1.0f, 1.0f);
 
-	enum GameMode { TITLE_SCREEN, GAME };
-	GameMode mode = TITLE_SCREEN;
-
+	
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -672,7 +994,8 @@ int main(int argc, char *argv[])
 	const int runAnimation2[] = { 3, 7, 11, 15 };
 	const int runAmimation3[] = { 2, 6, 10, 14 };
 	const int runAmimation4[] = { 0, 4, 8, 12 };
-	const int numFrames = 5;
+	const int indexdragon[] = {1, 11, 20};
+	const int numFrames = 4;
 	float animationElapsed = 0.0f;
 	float framesPerSecond = 30.0f;
 	int currentIndex = 0;
@@ -690,7 +1013,7 @@ int main(int argc, char *argv[])
 	explosion = Mix_LoadWAV("explode.wav");
 
 	Mix_Music *music;
-	music = Mix_LoadMUS("Lobo_Loco_-_13_-_Funky_Machine_ID_874.mp3");
+	music = Mix_LoadMUS("Lobo_Loco_-_01_-_Streetworker_Jack_ID_844.mp3");
 	Mix_VolumeMusic(25);
 	Mix_PlayMusic(music, -1);
 
@@ -699,7 +1022,7 @@ int main(int argc, char *argv[])
 	programtextured.SetViewMatrix(viewMatrix);
 
 	srand(time(NULL));
-
+	glPointSize(5.0);
 	//End Setup
 	//Running program
 	while (!done) {
@@ -711,8 +1034,14 @@ int main(int argc, char *argv[])
 				//Press enter key to begin game
 				if (event.key.keysym.scancode == SDL_SCANCODE_RETURN) {
 					if (mode == TITLE_SCREEN) {
+						//reset player and enemy position
+						LoadNewMap("adventureforest.txt");
+						currentMap = 0;
 						mode = GAME;
-
+					}
+					else if (mode == GAME_OVER){
+						
+						mode = TITLE_SCREEN;
 					}
 				}
 			}
@@ -728,18 +1057,18 @@ int main(int argc, char *argv[])
 				{
 				case 0:
 					newbullt.velocity_x = 0;
-					newbullt.velocity_y = -bulletVelocity * 2;
+					newbullt.velocity_y = -bulletVelocity * 2.5;
 					break;
 				case 2:
 					newbullt.velocity_x = 0;
-					newbullt.velocity_y = bulletVelocity * 2;
+					newbullt.velocity_y = bulletVelocity * 2.5;
 					break;
 				case 3:
-					newbullt.velocity_x = bulletVelocity * 2;
+					newbullt.velocity_x = bulletVelocity * 2.5;
 					newbullt.velocity_y = 0;
 					break;
 				case 1:
-					newbullt.velocity_x = -bulletVelocity * 2;
+					newbullt.velocity_x = -bulletVelocity * 2.5;
 					newbullt.velocity_y = 0;
 					break;
 				}
@@ -930,18 +1259,24 @@ int main(int argc, char *argv[])
 				programtextured.SetProjectionMatrix(projectionMatrix);
 
 				glBindTexture(GL_TEXTURE_2D, dragon);
-				DrawSpriteSheetSprite(programtextured, 1, 16, 8);
-
+				if (indexdragon[1]) {
+					DrawSpriteSheetSpritedragon(programtextured, 1, 16, 6);
+				}
+				else if (indexdragon[11]) {
+					DrawSpriteSheetSpritedragon(programtextured, 11, 16, 6);
+				}
+				else if (indexdragon[20]) {
+					DrawSpriteSheetSpritedragon(programtextured, 20, 16, 6);
+				}
 			}
-
-			for (int b = 0; b < dragons.size(); b++) {
+				for (int b = 0; b < dragon2s.size(); b++) {
 				modelMatrix.Identity();
-				modelMatrix.Translate(dragons[b].position_x, dragons[b].position_y, 0.0f);
+				modelMatrix.Translate(dragon2s[b].position_x, dragon2s[b].position_y, 0.0f);
 				programtextured.SetModelMatrix(modelMatrix);
 				programtextured.SetProjectionMatrix(projectionMatrix);
 
 				glBindTexture(GL_TEXTURE_2D, dragon2);
-				DrawSpriteSheetSprite(programtextured, 8, 16, 8);
+				DrawSpriteSheetSpritedragon(programtextured, 8, 10, 8);
 
 			}
 
@@ -954,10 +1289,64 @@ int main(int argc, char *argv[])
 
 				glBindTexture(GL_TEXTURE_2D, backgroun4);
 				DrawSpriteSheetSprite(programtextured, 98, 16, 8);
+			}
 
+				
+			for (int b = 0; b < forests.size(); b++) {
+					modelMatrix.Identity();
+					modelMatrix.Translate(forests[b].position_x, forests[b].position_y, 0.0f);
+					programtextured.SetModelMatrix(modelMatrix);
+					programtextured.SetProjectionMatrix(projectionMatrix);
+
+					glBindTexture(GL_TEXTURE_2D, forestenemy);
+					DrawSpriteSheetSprite(programtextured, 1, 4, 1);
+				}
+			
+			for (int b = 0; b < wizards.size(); b++) {
+				modelMatrix.Identity();
+				modelMatrix.Translate(wizards[b].position_x, wizards[b].position_y, 0.0f);
+				programtextured.SetModelMatrix(modelMatrix);
+				programtextured.SetProjectionMatrix(projectionMatrix);
+				glBindTexture(GL_TEXTURE_2D, wizardenemy);
+				DrawSpriteSheetSprite(programtextured, 1, 4, 1);
+				
 			}
 			
+			for (int b = 0; b < soliders.size(); b++) {
+				modelMatrix.Identity();
+				modelMatrix.Translate(soliders[b].position_x, soliders[b].position_y, 0.0f);
+				programtextured.SetModelMatrix(modelMatrix);
+				programtextured.SetProjectionMatrix(projectionMatrix);
+				glBindTexture(GL_TEXTURE_2D, soliderenemy);
+				DrawSpriteSheetSprite(programtextured, 2, 4, 1);
+				
+			}
+				for (int b = 0; b < knights.size(); b++) {
+					modelMatrix.Identity();
+					modelMatrix.Translate(knights[b].position_x, knights[b].position_y, 0.0f);
+					programtextured.SetModelMatrix(modelMatrix);
+					programtextured.SetProjectionMatrix(projectionMatrix);
+					glBindTexture(GL_TEXTURE_2D, knightrenemy);
+					DrawSpriteSheetSprite(programtextured, 1, 4, 1);
+					
+				}
+		
 			
+			modelMatrixuntext.Identity();
+			modelMatrixuntext.Translate(part.position_x, part.position_y, 0);
+			programuntextured.SetModelMatrix(modelMatrixuntext);
+			programuntextured.SetProjectionMatrix(projectionMatrixuntext);
+			programuntextured.SetViewMatrix(viewMatrix);
+			part.render(&programuntextured);
+			break;
+
+		case GAME_OVER :
+			viewMatrix.Identity();
+			modelMatrixtext.Identity();
+			modelMatrixtext.Translate(-2.0f, 1.0f, 0.0f);
+			programtextured.SetModelMatrix(modelMatrixtext);
+			programtextured.SetViewMatrix(viewMatrix);
+			DrawText(&programtextured, text, "GAME OVER", ((3.5 / 25.0f) * 2.0f), -0.03f);
 			break;
 		}
 
