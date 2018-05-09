@@ -1260,13 +1260,13 @@ int main(int argc, char *argv[])
 
 				glBindTexture(GL_TEXTURE_2D, dragon);
 				if (indexdragon[1]) {
-					DrawSpriteSheetSpritedragon(programtextured, 1, 16, 6);
+					DrawSpriteSheetSpritedragon(programtextured, 1, 5, 5);
 				}
 				else if (indexdragon[11]) {
-					DrawSpriteSheetSpritedragon(programtextured, 11, 16, 6);
+					DrawSpriteSheetSpritedragon(programtextured, 11, 5, 5);
 				}
 				else if (indexdragon[20]) {
-					DrawSpriteSheetSpritedragon(programtextured, 20, 16, 6);
+					DrawSpriteSheetSpritedragon(programtextured, 20, 5, 5);
 				}
 			}
 				for (int b = 0; b < dragon2s.size(); b++) {
@@ -1276,7 +1276,7 @@ int main(int argc, char *argv[])
 				programtextured.SetProjectionMatrix(projectionMatrix);
 
 				glBindTexture(GL_TEXTURE_2D, dragon2);
-				DrawSpriteSheetSpritedragon(programtextured, 8, 10, 8);
+				DrawSpriteSheetSpritedragon(programtextured, 8, 5, 5);
 
 			}
 
